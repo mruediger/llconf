@@ -1,15 +1,15 @@
-(done (and vim bash))
+(done (and (vim) (bash)))
 
-(vim (and (installed vim) configured_vim))
+(vim (and (installed vim) (configured_vim)))
 
 (bash (and (installed bash) configured_bash))
 
 (configured_bash
- (sync_to ("$HOME/.bashrc" (template "bashrc")))
+ (sync_template "$HOME/.bashrc" "bashrc"))
 )
 
 (configured_vim
- (sync_to ("$HOME/.vimrc (template "vimrc")))
+ (sync_template "$HOME/.vimrc" [template: vimrc]))
 )
 
 (installed
