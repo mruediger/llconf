@@ -1,14 +1,13 @@
 package llconf
 
 import (
+	"strconv"
 	"strings"
-	"fmt"
 )
 
 type Promise interface {
 	Desc(consts map[string][]string) string
 	Eval(consts map[string][]string) bool
-	SetConsts(consts map[string][]string)
 }
 
 
@@ -36,9 +35,6 @@ func (p AndPromise) Eval(consts map[string][]string) bool {
 	return true
 }
 
-func (p AndPromise) SetConsts(consts map[string][]string) {
-	return
-}
 
 /*
  * OrPromise
@@ -64,10 +60,6 @@ func (p OrPromise) Eval(consts map[string][]string) bool {
 	return false
 }
 
-func (p OrPromise) SetConsts(consts map[string][]string) {
-	return
-}
-
 /*
  * ExecPromise
  */
@@ -76,38 +68,25 @@ type ExecPromise struct {
 }
 
 func (p ExecPromise) Desc(consts map[string][]string) string {
-
-
-	
 	command := ""
 	for _,v := range(p.Constants["argument"]) {
 		command += " " + v
 	}
 
-	arg := ""
+
 	for _,v := range(p.Constants["arg"]) {
-		arg += " " + v
+		i,e := strconv.Atoi(strings.TrimSpace(v))
+		if e != nil {
+			panic(e)
+		}
+		command += consts["argument"][i]
 	}
-
-	inh_cmd := ""
-	for _,v := range(consts["argument"]) {
-		inh_cmd += " " + v
-	}
-		
-	inh_arg := ""
-	for _,v := range(consts["arg"]) {
-		inh_arg += " " + v
-	}
-
-	return "(exec <" + command + "|" + arg +"|" + inh_cmd + "|" + inh_arg +">)"
+	
+	return "(exec <" + command + ">"
 }
 
 func (p ExecPromise) Eval(consts map[string][]string) bool {
 	return true
-}
-
-func (p ExecPromise) SetConsts(consts map[string][]string) {
-	p.Constants = consts
 }
 
 /*
@@ -117,14 +96,13 @@ func (p ExecPromise) SetConsts(consts map[string][]string) {
 type NamedPromise struct {
 	Name string
 	Promise Promise
-	Constants map[string][]string
 }
 
 func (p NamedPromise) Desc(consts map[string][]string) string {
 	if p.Promise != nil {
-		return "(" + p.Name + " " + p.Promise.Desc(merge(p.Constants, consts)) + ")"
+		return "(" + p.Name + " " + p.Promise.Desc(consts) + ")"
 	} else {
-		return "(" + p.Name + strings.Join(p.Constants["argument"],",")  + ">"
+		return "(" + p.Name + ">"
 	}
 }
 
@@ -137,11 +115,21 @@ func (p NamedPromise) Eval(map[string][]string)  bool {
 	return true
 }
 
-func (p NamedPromise) SetConsts(consts map[string][]string) {
-	p.Constants = consts
-	fmt.Println("yyy>", strings.Join(p.Constants["argument"],","))
+/*
+ * NAMED PROMISE USAGE
+ */
+type NamedPromiseUsage struct {
+	Promise Promise
+	Constants map[string][]string
 }
 
+func (p NamedPromiseUsage) Desc(consts map[string][]string) string {
+	return p.Promise.Desc(merge(p.Constants, consts))
+}
+
+func (p NamedPromiseUsage) Eval(consts map[string][]string) bool {
+	return p.Promise.Eval(merge(p.Constants, consts))
+}
 	
 func merge(c1 map[string][]string, c2 map[string][]string) map[string][]string {
 	result := map[string][]string{}

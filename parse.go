@@ -2,7 +2,6 @@ package llconf
 
 import (
 	"io"
-	"fmt"
 )
 
 
@@ -39,15 +38,11 @@ func (up UnparsedPromise) parse(promises map[string]Promise, primary bool) Promi
 			}
 			np := promises[up.Name].(*NamedPromise)
 			np.Promise = values[0]
-			np.Constants = up.Consts
-
 			return np
 		} else {
 			if _, ok := promises[up.Name]; ok {
 				np := promises[up.Name].(*NamedPromise)
-				np.Constants = up.Consts
-				fmt.Println(">>> ", np.Constants)
-				return np
+				return NamedPromiseUsage{np, up.Consts}
 			} else {
 				panic("didn't find promise (" + up.Name + ")")
 			}
@@ -65,7 +60,7 @@ func ParsePromises( in io.RuneScanner ) map[string]Promise {
 		if _,present := promises[p.Name]; present {
 			panic("duplicated Promise: " + p.Name)
 		} else {
-			promises[p.Name] = &NamedPromise { p.Name, nil, nil }
+			promises[p.Name] = &NamedPromise { p.Name, nil }
 		}
 	}
 

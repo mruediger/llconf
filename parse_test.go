@@ -13,7 +13,7 @@ func TestParser(t *testing.T) {
 	promises := ParsePromises( bufin )
 
 	for k,v := range(promises) {
-		if k == "git" {
+		if k == "configured_bash" {
 			fmt.Printf("%s: %s\n", k,v)
 		}
 	}

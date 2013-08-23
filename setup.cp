@@ -15,12 +15,12 @@
 )
 
 (sync_template
-  (exec "cp ~/templates" [arg: 1] " " [arg:0]))
+  (exec "cp ~/templates " [arg: 1] " " [arg:0]))
 
 (installed
  (or
-  (and (debian) (apt_installed) (apt [arg 0]))
-  (and (fedora) (yum_installed) (yum [arg 0]))
+  (and (debian) (apt_installed) (apt [arg: 0]))
+  (and (fedora) (yum_installed) (yum [arg: 0]))
  )
 )
 
@@ -31,7 +31,7 @@
 (yum (exec "yum install " [arg: 0]))
 (apt (exec "apt-get install " [arg: 0]))
 
-(git 
+(git
  (or
   (and (exec "git fetch --all") (exec "git status"))
   (exec "git clone" [arg: 0])

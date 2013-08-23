@@ -11,6 +11,11 @@ type UnparsedPromise struct {
 	Consts map[string][]string
 }
 
+type Constant struct {
+	Name string
+	Values []string
+}
+
 // for debugging only
 func (up UnparsedPromise) String() string {
 	valuesString := ""
@@ -43,6 +48,9 @@ func readConstant( in io.RuneScanner ) (string,string) {
 		case '"':
 			return "argument",name
 		case ']':
+			if value == "" {
+				panic("empty value for key: " + name + ". Did you forget the ':'")
+			}
 			return strings.TrimSpace(name), strings.TrimSpace(value)
 		case ':':
 			nameDone = true
