@@ -2,6 +2,7 @@
 <body>
 <h1>Couchdb example</h1>
 	<p>This sample installs couchdb</p>
+        <p>Replace certificates with your own</p>
 <pre>
 (done 
   (couch)
