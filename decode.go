@@ -8,12 +8,7 @@ import (
 type UnparsedPromise struct {
 	Name string
 	Values []UnparsedPromise
-	Consts []Constant
-}
-
-type Constant struct {
-	Name string
-	Value string
+	Consts map[string][]string
 }
 
 // for debugging only
@@ -24,18 +19,14 @@ func (up UnparsedPromise) String() string {
 	}
 
 	constsString := ""
-	for _,constant := range up.Consts {
-		constsString += ( " " + constant.String() )
+	for k,v := range up.Consts {
+		constsString += ( " |" + k + "|" + strings.Join( v, "," ))
 	}
 
 	return "[ <" + up.Name + ">" + constsString + valuesString + " ]"
 }
 
-func (c Constant) String() string {
-	return "|" + c.Name + ":  " + c.Value + "|"
-}
-
-func readConstant( in io.RuneScanner ) Constant {
+func readConstant( in io.RuneScanner ) (string,string) {
 	name := ""
 	nameDone := false
 	value := ""
@@ -50,9 +41,9 @@ func readConstant( in io.RuneScanner ) Constant {
 
 		switch r {
 		case '"':
-			return Constant{"arg",name}
+			return "argument",name
 		case ']':
-			return Constant{strings.TrimSpace(name), strings.TrimSpace(value)}
+			return strings.TrimSpace(name), strings.TrimSpace(value)
 		case ':':
 			nameDone = true
 		default:
@@ -92,7 +83,7 @@ func ReadPromises( in io.RuneScanner ) []UnparsedPromise {
 func readPromise( in io.RuneScanner ) UnparsedPromise {
 	name := ""
 	values := []UnparsedPromise{}
-	consts := []Constant{}
+	consts := map[string][]string{}
 
 	for {
 		r,_,e := in.ReadRune()
@@ -102,7 +93,12 @@ func readPromise( in io.RuneScanner ) UnparsedPromise {
 
 		switch {
 		case r == '"' || r == '[':
-			consts = append(consts, readConstant(in))
+			name,value := readConstant(in)
+			if ctype,present := consts[name]; present {
+				consts[name] = append(ctype,value)
+			} else {
+				consts[name] = []string{ value }
+			}
 		case r == '(':
 			values = append(values, readPromise(in))
 		case r == ')':

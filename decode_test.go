@@ -14,25 +14,16 @@ func TestReadPromise(t *testing.T) {
 		want UnparsedPromise
 	}{
 		{ "(done)",
-			UnparsedPromise{ "done", []UnparsedPromise{}, []Constant{}}},
+			UnparsedPromise{ "done", []UnparsedPromise{}, map[string][]string{}}},
 		{ "commented promies (done)",
-			UnparsedPromise{ "done", []UnparsedPromise{}, []Constant{}}},
+			UnparsedPromise{ "done", []UnparsedPromise{}, map[string][]string{}}},
 		{ "verbose (commented) promise",
-			UnparsedPromise{ "commented", []UnparsedPromise{}, []Constant{}}},
+			UnparsedPromise{ "commented", []UnparsedPromise{}, map[string][]string{}}},
 		{ "(and (bash) (vim))",
 			UnparsedPromise{ "and", []UnparsedPromise{
-				UnparsedPromise{ "bash", []UnparsedPromise{}, []Constant{}},
-				UnparsedPromise{ "vim", []UnparsedPromise{}, []Constant{}},
-			}, []Constant{}}},
-		{ "(test_arg \"asdf\")",
-			UnparsedPromise{ "test_arg", []UnparsedPromise{}, []Constant{
-				Constant{"arg", "asdf"},
-			}}},
-		{ "(test_constant [foo: bar])",
-			UnparsedPromise{ "test_constant", []UnparsedPromise{}, []Constant{
-				Constant{"foo", "bar"},
-			}}},
-
+				UnparsedPromise{ "bash", []UnparsedPromise{}, map[string][]string{}},
+				UnparsedPromise{ "vim", []UnparsedPromise{}, map[string][]string{}},
+			}, map[string][]string{}}},
 	}
 	for _,c := range tests {
 		got := ReadPromises( strings.NewReader(c.input ) )[0]
@@ -48,7 +39,7 @@ func TestPromiseFile(t *testing.T) {
 
 
 	promises := ReadPromises( bufin )
-	len_wanted := 12
+	len_wanted := 14
 	
 	if len( promises ) != len_wanted {
 		t.Errorf("missing promisses: want %d, got %d", len_wanted, len(promises))

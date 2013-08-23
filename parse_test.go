@@ -13,6 +13,8 @@ func TestParser(t *testing.T) {
 	promises := ParsePromises( bufin )
 
 	for k,v := range(promises) {
-		fmt.Printf("%s: %s\n", k,v)
+		if k == "done" {
+			fmt.Printf("%s: %s\n", k,v)
+		}
 	}
 }

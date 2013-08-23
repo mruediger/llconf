@@ -1,3 +1,5 @@
+<html>
+
 (done (and (vim) (bash)))
 
 (vim (and (installed "vim") (configured_vim)))
@@ -12,14 +14,13 @@
  (sync_template "$HOME/.vimrc" "vimrc"))
 )
 
-
 (sync_template
   (exec "cp ~/templates" [arg: 1] " " [arg:0]))
 
 (installed
  (or
-  (and (debian) (apt_installed [arg 0]))
-  (and (fedora) (yum_installed [arg 0]))
+  (and (debian) (apt_installed) (apt [arg 0]))
+  (and (fedora) (yum_installed) (yum [arg 0]))
  )
 )
 
@@ -27,6 +28,8 @@
 (yum_installed (exec "/usr/bin/test -x /usr/bin/yum"))
 (debian (exec "/usr/bin/grep -q Debian /etc/system-release"))
 (fedora (exec "/usr/bin/grep -q Fedora /etc/system-release"))
+(yum (exec "yum install " [arg: 0]))
+(apt (exec "apt-get install " [arg: 0]))
 
 (git 
  (or
@@ -34,3 +37,6 @@
   (exec "git clone" [arg: 0])
  )
 )
+
+</html>
+

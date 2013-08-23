@@ -2,6 +2,7 @@ package llconf
 
 import (
 	"io"
+	"fmt"
 )
 
 
@@ -27,7 +28,7 @@ func (up UnparsedPromise) parse(promises map[string]Promise, primary bool) Promi
 		if primary {
 			panic( "(and) promise not allowed as primary promise" )
 		}
-		return ExecPromise{ "echo hello world" }
+		return ExecPromise{ up.Consts }
 	default:
 		if primary {
 			if len( values ) < 1 {
@@ -36,11 +37,17 @@ func (up UnparsedPromise) parse(promises map[string]Promise, primary bool) Promi
 			if len( values ) > 1 {
 				panic( "to many values for NamedPromise: " + up.Name )
 			}
-			value := values[0]
-			return NamedPromise { up.Name, &value }
+			np := promises[up.Name].(*NamedPromise)
+			np.Promise = values[0]
+			np.Constants = up.Consts
+
+			return np
 		} else {
-			if value, ok := promises[up.Name]; ok {
-				return value 
+			if _, ok := promises[up.Name]; ok {
+				np := promises[up.Name].(*NamedPromise)
+				np.Constants = up.Consts
+				fmt.Println(">>> ", np.Constants)
+				return np
 			} else {
 				panic("didn't find promise (" + up.Name + ")")
 			}
@@ -55,15 +62,15 @@ func ParsePromises( in io.RuneScanner ) map[string]Promise {
 	promises := map[string]Promise{}
 
 	for _,p := range( unparsed ) {
-		if promise,present := promises[p.Name]; present {
-			panic("duplicated Promise: " + promise.String() + " " + p.String())
+		if _,present := promises[p.Name]; present {
+			panic("duplicated Promise: " + p.Name)
 		} else {
-			promises[p.Name] = NamedPromise { p.Name, nil }
+			promises[p.Name] = &NamedPromise { p.Name, nil, nil }
 		}
 	}
 
 	for _,p := range( unparsed ) {
-		promises[p.Name] = p.parse( promises, true )
+		p.parse( promises, true )
 	}
 
 	return promises
