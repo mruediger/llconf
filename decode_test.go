@@ -14,16 +14,16 @@ func TestReadPromise(t *testing.T) {
 		want UnparsedPromise
 	}{
 		{ "(done)",
-			UnparsedPromise{ "done", []UnparsedPromise{}, map[string][]string{}}},
+			UnparsedPromise{ "done", []UnparsedPromise{}, []Argument{}}},
 		{ "commented promies (done)",
-			UnparsedPromise{ "done", []UnparsedPromise{}, map[string][]string{}}},
+			UnparsedPromise{ "done", []UnparsedPromise{}, []Argument{}}},
 		{ "verbose (commented) promise",
-			UnparsedPromise{ "commented", []UnparsedPromise{}, map[string][]string{}}},
+			UnparsedPromise{ "commented", []UnparsedPromise{}, []Argument{}}},
 		{ "(and (bash) (vim))",
 			UnparsedPromise{ "and", []UnparsedPromise{
-				UnparsedPromise{ "bash", []UnparsedPromise{}, map[string][]string{}},
-				UnparsedPromise{ "vim", []UnparsedPromise{}, map[string][]string{}},
-			}, map[string][]string{}}},
+				UnparsedPromise{ "bash", []UnparsedPromise{}, []Argument{}},
+				UnparsedPromise{ "vim", []UnparsedPromise{}, []Argument{}},
+			}, []Argument{}}},
 	}
 	for _,c := range tests {
 		got := ReadPromises( strings.NewReader(c.input ) )[0]

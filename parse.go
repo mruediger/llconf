@@ -27,7 +27,7 @@ func (up UnparsedPromise) parse(promises map[string]Promise, primary bool) Promi
 		if primary {
 			panic( "(and) promise not allowed as primary promise" )
 		}
-		return ExecPromise{ up.Consts }
+		return ExecPromise{ up.Arguments }
 	default:
 		if primary {
 			if len( values ) < 1 {
@@ -42,7 +42,7 @@ func (up UnparsedPromise) parse(promises map[string]Promise, primary bool) Promi
 		} else {
 			if _, ok := promises[up.Name]; ok {
 				np := promises[up.Name].(*NamedPromise)
-				return NamedPromiseUsage{np, up.Consts}
+				return NamedPromiseUsage{np, up.Arguments}
 			} else {
 				panic("didn't find promise (" + up.Name + ")")
 			}

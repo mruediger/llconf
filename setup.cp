@@ -15,7 +15,7 @@
 )
 
 (sync_template
-  (exec "cp ~/templates " [arg: 1] " " [arg:0]))
+  (exec "cp ~/templates/" [arg: 1] " " [arg:0]))
 
 (installed
  (or

@@ -1,13 +1,8 @@
 package llconf
 
-import (
-	"strconv"
-	"strings"
-)
-
 type Promise interface {
-	Desc(consts map[string][]string) string
-	Eval(consts map[string][]string) bool
+	Desc(arguments []Constant) string
+	Eval(arguments []Constant) bool
 }
 
 
@@ -18,17 +13,17 @@ type AndPromise struct {
 	Promises []Promise
 }
 
-func (p AndPromise) Desc(consts map[string][]string) string {
+func (p AndPromise) Desc(arguments []Constant) string {
 	promises := ""
 	for _,v := range(p.Promises) {
-		promises += " " + v.Desc(consts)
+		promises += " " + v.Desc(arguments)
 	}
 	return "(and" + promises + ")"
 }
 
-func (p AndPromise) Eval(consts map[string][]string) bool {
+func (p AndPromise) Eval(arguments []Constant) bool {
 	for _,v := range(p.Promises) {
-		if v.Eval(consts) == false {
+		if v.Eval(arguments) == false {
 			return false
 		}
 	}
@@ -43,17 +38,17 @@ type OrPromise struct {
 	Promises []Promise
 }
 
-func (p OrPromise) Desc(consts map[string][]string) string {
+func (p OrPromise) Desc(arguments []Constant) string {
 	promises := ""
 	for _,v := range(p.Promises) {
-		promises += " " + v.Desc(consts)
+		promises += " " + v.Desc(arguments)
 	}
 	return "(or" + promises + ")"
 }
 
-func (p OrPromise) Eval(consts map[string][]string) bool {
+func (p OrPromise) Eval(arguments []Constant) bool {
 	for _,v := range(p.Promises) {
-		if v.Eval(consts) == true {
+		if v.Eval(arguments) == true {
 			return true
 		}
 	}
@@ -64,28 +59,18 @@ func (p OrPromise) Eval(consts map[string][]string) bool {
  * ExecPromise
  */
 type ExecPromise struct {
-	Constants map[string][]string
+	Arguments []Argument
 }
 
-func (p ExecPromise) Desc(consts map[string][]string) string {
+func (p ExecPromise) Desc(arguments []Constant) string {
 	command := ""
-	for _,v := range(p.Constants["argument"]) {
-		command += " " + v
+	for _,argument := range(p.Arguments) {
+		command += argument.GetValue(arguments) 
 	}
-
-
-	for _,v := range(p.Constants["arg"]) {
-		i,e := strconv.Atoi(strings.TrimSpace(v))
-		if e != nil {
-			panic(e)
-		}
-		command += consts["argument"][i]
-	}
-	
 	return "(exec <" + command + ">"
 }
 
-func (p ExecPromise) Eval(consts map[string][]string) bool {
+func (p ExecPromise) Eval(arguments []Constant) bool {
 	return true
 }
 
@@ -98,20 +83,20 @@ type NamedPromise struct {
 	Promise Promise
 }
 
-func (p NamedPromise) Desc(consts map[string][]string) string {
+func (p NamedPromise) Desc(arguments []Constant) string {
 	if p.Promise != nil {
-		return "(" + p.Name + " " + p.Promise.Desc(consts) + ")"
+		return "(" + p.Name + " " + p.Promise.Desc(arguments) + ")"
 	} else {
 		return "(" + p.Name + ">"
 	}
 }
 
 func (p NamedPromise) String() string {
-	return p.Desc(map[string][]string{})
+	return p.Desc([]Constant{})
 }
 
 
-func (p NamedPromise) Eval(map[string][]string)  bool {
+func (p NamedPromise) Eval(arguments []Constant)  bool {
 	return true
 }
 
@@ -120,36 +105,23 @@ func (p NamedPromise) Eval(map[string][]string)  bool {
  */
 type NamedPromiseUsage struct {
 	Promise Promise
-	Constants map[string][]string
+	Arguments []Argument
 }
 
-func (p NamedPromiseUsage) Desc(consts map[string][]string) string {
-	return p.Promise.Desc(merge(p.Constants, consts))
-}
-
-func (p NamedPromiseUsage) Eval(consts map[string][]string) bool {
-	return p.Promise.Eval(merge(p.Constants, consts))
-}
+func (p NamedPromiseUsage) Desc(arguments []Constant) string {
+	parsed_arguments := []Constant{}
+	for _,argument := range(p.Arguments) {
+		parsed_arguments = append(parsed_arguments, Constant{argument.GetValue(arguments)})
+	}
 	
-func merge(c1 map[string][]string, c2 map[string][]string) map[string][]string {
-	result := map[string][]string{}
+	return p.Promise.Desc(append(parsed_arguments, arguments...))
+}
 
-	for key,_ := range(c1) {
-		if _,present := result[key]; present {
-			result[key] = append(result[key], c1[key]...)
-		} else {
-			result[key] = c1[key]
-		}
+func (p NamedPromiseUsage) Eval(arguments []Constant) bool {
+	parsed_arguments := []Constant{}
+	for _,argument := range(p.Arguments) {
+		parsed_arguments = append(parsed_arguments, Constant{argument.GetValue(arguments)})
 	}
 
-
-	for key,_ := range(c2) {
-		if _,present := result[key]; present {
-			result[key] = append(result[key], c2[key]...)
-		} else {
-			result[key] = c2[key]
-		}
-	}
-
-	return result
+	return p.Promise.Eval(append(parsed_arguments, arguments...))
 }

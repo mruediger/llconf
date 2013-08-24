@@ -3,18 +3,44 @@ package llconf
 import (
 	"io"
 	"strings"
+	"strconv"
 )
 
 type UnparsedPromise struct {
 	Name string
 	Values []UnparsedPromise
-	Consts map[string][]string
+	Arguments []Argument
+}
+
+type Argument interface {
+	GetValue(arguments []Constant) string
+	String() string
 }
 
 type Constant struct {
-	Name string
-	Values []string
+	Value string
 }
+
+func (constant Constant) GetValue(arguments []Constant) string {
+	return constant.Value
+}
+
+func (constant Constant) String() string {
+	return "constant->" + constant.Value
+}
+
+type ArgGetter struct {
+	Position int
+}
+
+func (argGetter ArgGetter) GetValue(arguments []Constant) string {
+	return arguments[argGetter.Position].Value
+}
+
+func (argGetter ArgGetter) String() string {
+	return string("arg->" + string(argGetter.Position))
+}
+
 
 // for debugging only
 func (up UnparsedPromise) String() string {
@@ -24,14 +50,14 @@ func (up UnparsedPromise) String() string {
 	}
 
 	constsString := ""
-	for k,v := range up.Consts {
-		constsString += ( " |" + k + "|" + strings.Join( v, "," ))
+	for _,v := range up.Arguments {
+		constsString += ( " |" + v.String() + "|" )
 	}
 
 	return "[ <" + up.Name + ">" + constsString + valuesString + " ]"
 }
 
-func readConstant( in io.RuneScanner ) (string,string) {
+func readArgument( in io.RuneScanner ) Argument {
 	name := ""
 	nameDone := false
 	value := ""
@@ -46,12 +72,21 @@ func readConstant( in io.RuneScanner ) (string,string) {
 
 		switch r {
 		case '"':
-			return "argument",name
+			return Constant{name}
 		case ']':
-			if value == "" {
-				panic("empty value for key: " + name + ". Did you forget the ':'")
+			name = strings.TrimSpace(name)
+			value = strings.TrimSpace(value)
+
+			switch name {
+			case "arg":
+				i,e := strconv.Atoi(strings.TrimSpace(value))
+				if e != nil {
+					panic(e)
+				}
+				return ArgGetter{i}
+			default:
+				panic("unknown getter type: " + name)
 			}
-			return strings.TrimSpace(name), strings.TrimSpace(value)
 		case ':':
 			nameDone = true
 		default:
@@ -90,8 +125,8 @@ func ReadPromises( in io.RuneScanner ) []UnparsedPromise {
 			
 func readPromise( in io.RuneScanner ) UnparsedPromise {
 	name := ""
-	values := []UnparsedPromise{}
-	consts := map[string][]string{}
+	promises := []UnparsedPromise{}
+	arguments := []Argument{}
 
 	for {
 		r,_,e := in.ReadRune()
@@ -101,16 +136,11 @@ func readPromise( in io.RuneScanner ) UnparsedPromise {
 
 		switch {
 		case r == '"' || r == '[':
-			name,value := readConstant(in)
-			if ctype,present := consts[name]; present {
-				consts[name] = append(ctype,value)
-			} else {
-				consts[name] = []string{ value }
-			}
+			arguments = append(arguments, readArgument(in))
 		case r == '(':
-			values = append(values, readPromise(in))
+			promises = append(promises, readPromise(in))
 		case r == ')':
-			return UnparsedPromise{ strings.TrimSpace(name), values, consts }
+			return UnparsedPromise{ strings.TrimSpace(name), promises, arguments }
 		default:
 			name += string(r)
 		}
