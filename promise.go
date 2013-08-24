@@ -1,5 +1,9 @@
 package llconf
 
+import (
+	"os"
+)
+
 type Promise interface {
 	Desc(arguments []Constant) string
 	Eval(arguments []Constant) bool
@@ -63,8 +67,15 @@ type ExecPromise struct {
 }
 
 func (p ExecPromise) Desc(arguments []Constant) string {
-	command := ""
 	dir := p.Arguments[0].GetValue(arguments)
+	command := ""
+	
+	filestat,error := os.Stat(dir)
+	if error != nil || !filestat.IsDir() {
+		command = dir
+		dir = os.Getenv("PWD")
+	}
+
 	for _,argument := range(p.Arguments[1:]) {
 		command += argument.GetValue(arguments) 
 	}

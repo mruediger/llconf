@@ -15,7 +15,7 @@
 )
 
 (sync_template
-  (exec [env:HOME] "cp ~/templates/" [arg: 1] " " [arg:0]))
+  (exec  "cp ~/templates/" [arg: 1] " " [arg:0]))
 
 (installed
  (or
@@ -24,12 +24,12 @@
  )
 )
 
-(apt_installed (exec [env:HOME] "/usr/bin/test -x /usr/bin/apt"))
-(yum_installed (exec [env:HOME] "/usr/bin/test -x /usr/bin/yum"))
-(debian (exec [env:HOME] "/usr/bin/grep -q Debian /etc/system-release"))
-(fedora (exec [env:HOME] "/usr/bin/grep -q Fedora /etc/system-release"))
-(yum (exec [env:HOME] "yum install " [arg: 0]))
-(apt (exec [env:HOME] "apt-get install " [arg: 0]))
+(apt_installed (exec  "/usr/bin/test -x /usr/bin/apt"))
+(yum_installed (exec  "/usr/bin/test -x /usr/bin/yum"))
+(debian (exec  "/usr/bin/grep -q Debian /etc/system-release"))
+(fedora (exec  "/usr/bin/grep -q Fedora /etc/system-release"))
+(yum (exec "/etc" "yum install " [arg: 0]))
+(apt (exec  "apt-get install " [arg: 0]))
 
 (git
   (or (git update [arg:0]) (git clone [arg:0] [arg:1]))
