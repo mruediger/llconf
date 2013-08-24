@@ -39,7 +39,7 @@ func TestPromiseFile(t *testing.T) {
 
 
 	promises := ReadPromises( bufin )
-	len_wanted := 14
+	len_wanted := 16
 	
 	if len( promises ) != len_wanted {
 		t.Errorf("missing promisses: want %d, got %d", len_wanted, len(promises))

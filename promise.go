@@ -64,10 +64,11 @@ type ExecPromise struct {
 
 func (p ExecPromise) Desc(arguments []Constant) string {
 	command := ""
-	for _,argument := range(p.Arguments) {
+	dir := p.Arguments[0].GetValue(arguments)
+	for _,argument := range(p.Arguments[1:]) {
 		command += argument.GetValue(arguments) 
 	}
-	return "(exec <" + command + ">"
+	return "(exec in_dir(" + dir + ") <" + command + ">)"
 }
 
 func (p ExecPromise) Eval(arguments []Constant) bool {

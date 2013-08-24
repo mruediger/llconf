@@ -4,6 +4,7 @@ import (
 	"io"
 	"strings"
 	"strconv"
+	"os"
 )
 
 type UnparsedPromise struct {
@@ -38,7 +39,23 @@ func (argGetter ArgGetter) GetValue(arguments []Constant) string {
 }
 
 func (argGetter ArgGetter) String() string {
-	return string("arg->" + string(argGetter.Position))
+	return "arg->" + string(argGetter.Position)
+}
+
+type EnvGetter struct {
+	Name string
+}
+
+func (envGetter EnvGetter) GetValue(arguments []Constant) string {
+	value := os.Getenv(envGetter.Name)
+	if value == "" {
+		panic("didn't find environment variable " + envGetter.Name)
+	}
+	return value
+}
+
+func (envGetter EnvGetter) String() string {
+	return "env->$" + envGetter.Name + "("+ os.Getenv(envGetter.Name) + ")"
 }
 
 
@@ -84,6 +101,8 @@ func readArgument( in io.RuneScanner ) Argument {
 					panic(e)
 				}
 				return ArgGetter{i}
+			case "env":
+				return EnvGetter{value}
 			default:
 				panic("unknown getter type: " + name)
 			}
