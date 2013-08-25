@@ -1,4 +1,4 @@
-package llconf
+package promise
 
 import (
 	"os"
@@ -136,4 +136,50 @@ func (p NamedPromiseUsage) Eval(arguments []Constant) bool {
 	}
 
 	return p.Promise.Eval(append(parsed_arguments, arguments...))
+}
+
+
+type Argument interface {
+	GetValue(arguments []Constant) string
+	String() string
+}
+
+type Constant struct {
+	Value string
+}
+
+func (constant Constant) GetValue(arguments []Constant) string {
+	return constant.Value
+}
+
+func (constant Constant) String() string {
+	return "constant->" + constant.Value
+}
+
+type ArgGetter struct {
+	Position int
+}
+
+func (argGetter ArgGetter) GetValue(arguments []Constant) string {
+	return arguments[argGetter.Position].Value
+}
+
+func (argGetter ArgGetter) String() string {
+	return "arg->" + string(argGetter.Position)
+}
+
+type EnvGetter struct {
+	Name string
+}
+
+func (envGetter EnvGetter) GetValue(arguments []Constant) string {
+	value := os.Getenv(envGetter.Name)
+	if value == "" {
+		panic("didn't find environment variable " + envGetter.Name)
+	}
+	return value
+}
+
+func (envGetter EnvGetter) String() string {
+	return "env->$" + envGetter.Name + "("+ os.Getenv(envGetter.Name) + ")"
 }

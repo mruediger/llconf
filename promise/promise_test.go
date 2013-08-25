@@ -1,4 +1,4 @@
-package llconf
+package promise
 
 
 type DummyPromise struct {
