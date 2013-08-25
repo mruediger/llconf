@@ -2,6 +2,9 @@ package promise
 
 import (
 	"os"
+	"os/exec"
+	"strings"
+	"fmt"
 )
 
 type Promise interface {
@@ -66,24 +69,47 @@ type ExecPromise struct {
 	Arguments []Argument
 }
 
-func (p ExecPromise) Desc(arguments []Constant) string {
-	dir := p.Arguments[0].GetValue(arguments)
-	command := ""
+func (p ExecPromise) getCommand(arguments []Constant) (string, string, []string) {
+	largs := p.Arguments
+	dir,largs := largs[0].GetValue(arguments), largs[1:]
 	
+	cmd := ""
 	filestat,error := os.Stat(dir)
 	if error != nil || !filestat.IsDir() {
-		command = dir
+		cmd = dir
 		dir = os.Getenv("PWD")
+	} else {
+		cmd, largs = largs[0].GetValue(arguments), largs[1:]
 	}
 
-	for _,argument := range(p.Arguments[1:]) {
-		command += argument.GetValue(arguments) 
+	args := []string{}
+	
+	for _,argument := range(largs) {
+		args = append(args,argument.GetValue(arguments))
 	}
-	return "(exec in_dir(" + dir + ") <" + command + ">)"
+
+	return dir, cmd, args
+}
+
+func (p ExecPromise) Desc(arguments []Constant) string {
+	dir, cmd, args := p.getCommand(arguments)
+	return "(exec in_dir(" + dir + ") <" + cmd + " [" + strings.Join(args,", ") + "] >)"
 }
 
 func (p ExecPromise) Eval(arguments []Constant) bool {
-	return true
+	dir, cmd, args := p.getCommand(arguments)
+	command := exec.Command(cmd, args...)
+	command.Dir = dir
+
+	output, e := command.CombinedOutput()
+
+	if e != nil {
+		fmt.Println(e, string(output))
+		return false
+	} else {
+		fmt.Println(output)
+		return true
+	}
 }
 
 /*
@@ -109,7 +135,7 @@ func (p NamedPromise) String() string {
 
 
 func (p NamedPromise) Eval(arguments []Constant)  bool {
-	return true
+	return p.Promise.Eval(arguments)
 }
 
 /*
