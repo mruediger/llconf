@@ -1,0 +1,26 @@
+(couchdb 
+  (and 
+    (installed "couchdb") 
+    (couchdb configured)))
+
+(couchdb configured
+ (and (local.ini) (certificate.cert) (certificate.key))
+)
+
+
+(local.ini
+  (exec "sh" "-c"
+        "cat >> /etc/couchdb/local.ini << EOF
+	[httpd]
+	port = 5984
+	[log]
+	level = debug
+        [ssl]
+        cert_file = /etc/pki/tls/certs/certificate.cert
+        key_file = /etc/pki/tls/certs/certificate.key
+	[admins]
+	admin = mysecretpassword
+        EOF
+"
+  )
+)

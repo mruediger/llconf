@@ -1,0 +1,16 @@
+(done
+  (or
+    (and (configdb) (and (couchdb)))
+    (and (beafy) (and (percona) (etl_scripts)))
+  )
+)
+
+### NODETYPES
+
+(configdb (nodetype is "configdb"))
+(beafy (nodetype is "beafy"))
+
+(nodetype is
+  (pipe
+    (exec "cat" "/opt/nodetype")
+    (exec "grep" [arg:0])))

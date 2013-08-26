@@ -1,0 +1,23 @@
+(installed
+	(or (and (fedora) (yum installed))))
+
+(yum installed
+    (or (yum package installed) (yum install package)))
+
+(yum package installed
+  (pipe
+    (exec "yum" "--quiet" "list" "installed")
+    (exec "sed" "-rn" "s/([^.]+).*/\1/p")
+    (exec "grep" [arg:0])))
+
+(yum install package
+  (exec "yum" "install" [arg:0]))
+
+(rpm install package
+  (exec "rpm" "-ihv" [arg:0]))
+
+(debian
+  (exec "grep" "Debian" "/etc/system-release"))
+
+(fedora
+  (exec "grep" "Fedora" "/etc/system-release"))
