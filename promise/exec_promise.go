@@ -5,8 +5,6 @@ import (
 	"os/exec"
 	"strings"
 	"fmt"
-	"bytes"
-	"io"
 )
 
 type ExecPromise struct {
@@ -69,46 +67,27 @@ func (p PipePromise) Desc(arguments []Constant) string {
 }
 
 func (p PipePromise) Eval(arguments []Constant) bool {
-	cmds := []*exec.Cmd{}
+	commands := []*exec.Cmd{}
 
 	for _,v := range(p.Execs) {
-		cmds = append(cmds, v.getCommand(arguments))
+		commands = append(commands, v.getCommand(arguments))
 	}
 
-	prev_cmd := cmds[0]
-	for _,cmd := range(cmds[1:]) {
-		pipe, _ := cmd.StdinPipe()
-		prev_cmd.Stdout = pipe
-	}
-
-	last_cmd,cmds := cmds[len(cmds)-1], cmds[:len(cmds)-1]
-	var output bytes.Buffer
-	
-	last_cmd.Stdout = &output
-	last_cmd.Start()
-
-	for _,cmd := range(cmds) {
-		err := cmd.Start()
+	for i, command := range(commands[:len(commands) - 1]) {
+		out, err := command.StdoutPipe()
 		if err != nil {
 			panic(err)
 		}
+		command.Start()
+		commands[i + 1].Stdin = out
 	}
 
-	for _,cmd := range(cmds) {
-		err := cmd.Wait()
-		cmd.Stdout.(io.WriteCloser).Close()
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	err := last_cmd.Wait()
-	if err != nil {
-		fmt.Printf("%v %v\n", err, output.String())
+	output, err:= commands[len(commands) - 1].Output()
+	if (err != nil) {
+		fmt.Printf("%v %v\n", err, string(output))
 		return false
 	} else {
-		fmt.Printf("%v\n",output.String())
+		fmt.Printf("%v\n", string(output))
 		return true
 	}
-	return false
 }
