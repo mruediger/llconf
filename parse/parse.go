@@ -51,6 +51,16 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 			panic( "(and) promise not allowed as primary promise" )
 		}
 		return promise.ExecPromise{ up.Arguments }
+	case "pipe":
+		if primary {
+			panic( "(pipe) promise not allowed as primary promise")
+		}
+		execs := []promise.ExecPromise{}
+		for _,v := range( values ) {
+			execs = append(execs, v.(promise.ExecPromise))
+		}
+		return promise.PipePromise{ execs }
+		
 	default:
 		if primary {
 			if len( values ) < 1 {
@@ -74,7 +84,7 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 }
 
 
-func readArgument( in io.RuneScanner ) promise.Argument {
+func readArgument( in io.RuneScanner, start rune ) promise.Argument {
 	name := ""
 	nameDone := false
 	value := ""
@@ -87,10 +97,10 @@ func readArgument( in io.RuneScanner ) promise.Argument {
 		}
 
 
-		switch r {
-		case '"':
-			return promise.Constant{name}
-		case ']':
+		switch {
+		case r == '"' && start == '"':
+			return promise.Constant{name+value}
+		case r == ']' && start == '[':
 			name = strings.TrimSpace(name)
 			value = strings.TrimSpace(value)
 
@@ -106,7 +116,7 @@ func readArgument( in io.RuneScanner ) promise.Argument {
 			default:
 				panic("unknown getter type: " + name)
 			}
-		case ':':
+		case r == ':':
 			nameDone = true
 		default:
 			if !nameDone {
@@ -155,7 +165,7 @@ func readPromise( in io.RuneScanner ) UnparsedPromise {
 
 		switch {
 		case r == '"' || r == '[':
-			arguments = append(arguments, readArgument(in))
+			arguments = append(arguments, readArgument(in, r))
 		case r == '(':
 			promises = append(promises, readPromise(in))
 		case r == ')':
