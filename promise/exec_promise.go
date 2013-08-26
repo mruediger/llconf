@@ -49,7 +49,7 @@ func (p ExecPromise) Eval(arguments []Constant) bool {
 		fmt.Println(e, string(output))
 		return false
 	} else {
-		fmt.Println(output)
+		fmt.Println(string(output))
 		return true
 	}
 }
