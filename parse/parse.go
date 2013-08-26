@@ -99,7 +99,11 @@ func readArgument( in io.RuneScanner, start rune ) promise.Argument {
 
 		switch {
 		case r == '"' && start == '"':
-			return promise.Constant{name+value}
+			if len(value) > 0 {
+				return promise.Constant{name + ":" + value}
+			} else {
+				return promise.Constant{name}
+			}
 		case r == ']' && start == '[':
 			name = strings.TrimSpace(name)
 			value = strings.TrimSpace(value)
