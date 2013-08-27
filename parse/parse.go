@@ -75,7 +75,7 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 		} else {
 			if _, ok := promises[up.Name]; ok {
 				np := promises[up.Name].(*promise.NamedPromise)
-				return promise.NamedPromiseUsage{np, up.Arguments}
+				return promise.NamedPromiseUsage{*np, up.Arguments}
 			} else {
 				panic("didn't find promise (" + up.Name + ")")
 			}
