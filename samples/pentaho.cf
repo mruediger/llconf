@@ -1,0 +1,45 @@
+(percona
+   (and (percona installed) (percona configured) (percona mysql setup))
+
+(percona installed   
+  (and (percona rpm installed)
+       (installed "Percona-Server-server-56")
+       (installed "Percona-Server-client-56")
+       (installed "Percona-Server-shared-56")))
+
+(percona rpm installed
+  (or (yum package installed "percona-release-0.0-1")
+      (and (downloaded http
+               "http://www.percona.com/downloads/percona-release/percona-release-0.0-1.x86_64.rpm"
+               "/tmp/percona-release.rpm")
+           (rpm install package "/tmp/percona-release.rpm"))))
+
+(downloaded http
+  (exec "curl" "-z" [arg:1] "-o" [arg:1] [arg:0]))
+
+
+     
+(percona configured
+  (exec "sh" "-c" "cat >> /etc/my.cnf << EOF
+[mysqld]
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+user=mysql
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+[mysqld_safe]
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+"))
+
+(percona mysql setup
+  (and (percona rootpasswd set "7J4jmwiJkwgUx68d")
+       (percona configscript run)))
+
+(percona set mysql rootpasswd
+  (or (exec "mysqladmin" "-u" "root" "-p" [arg:0] status)
+      (exec "mysqladmin" "-u" "root" "password" [arg:0])))
+
+(percona configscript run
+  (exec "mysql" "-u" "root" "-p" "$(root_password)" "-e" "source percona_config.mysql"))

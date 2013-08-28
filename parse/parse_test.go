@@ -1,11 +1,13 @@
-package llconf
+package parse
 
 import (
 	"testing"
+	"fmt"
+	"bufio"
+	"os"
 	"strings"
 	"reflect"
-	"os"
-	"bufio"
+	"github.com/mruediger/llconf/promise"
 )
 
 func TestReadPromise(t *testing.T) {
@@ -14,25 +16,16 @@ func TestReadPromise(t *testing.T) {
 		want UnparsedPromise
 	}{
 		{ "(done)",
-			UnparsedPromise{ "done", []UnparsedPromise{}, []Constant{}}},
+			UnparsedPromise{ "done", []UnparsedPromise{}, []promise.Argument{}}},
 		{ "commented promies (done)",
-			UnparsedPromise{ "done", []UnparsedPromise{}, []Constant{}}},
+			UnparsedPromise{ "done", []UnparsedPromise{}, []promise.Argument{}}},
 		{ "verbose (commented) promise",
-			UnparsedPromise{ "commented", []UnparsedPromise{}, []Constant{}}},
+			UnparsedPromise{ "commented", []UnparsedPromise{}, []promise.Argument{}}},
 		{ "(and (bash) (vim))",
 			UnparsedPromise{ "and", []UnparsedPromise{
-				UnparsedPromise{ "bash", []UnparsedPromise{}, []Constant{}},
-				UnparsedPromise{ "vim", []UnparsedPromise{}, []Constant{}},
-			}, []Constant{}}},
-		{ "(test_arg \"asdf\")",
-			UnparsedPromise{ "test_arg", []UnparsedPromise{}, []Constant{
-				Constant{"arg", "asdf"},
-			}}},
-		{ "(test_constant [foo: bar])",
-			UnparsedPromise{ "test_constant", []UnparsedPromise{}, []Constant{
-				Constant{"foo", "bar"},
-			}}},
-
+				UnparsedPromise{ "bash", []UnparsedPromise{}, []promise.Argument{}},
+				UnparsedPromise{ "vim", []UnparsedPromise{}, []promise.Argument{}},
+			}, []promise.Argument{}}},
 	}
 	for _,c := range tests {
 		got := ReadPromises( strings.NewReader(c.input ) )[0]
@@ -48,9 +41,25 @@ func TestPromiseFile(t *testing.T) {
 
 
 	promises := ReadPromises( bufin )
-	len_wanted := 12
+	len_wanted := 16
 	
 	if len( promises ) != len_wanted {
 		t.Errorf("missing promisses: want %d, got %d", len_wanted, len(promises))
+	}
+}
+
+
+func TestParser(t *testing.T) {
+	file,e := os.Open( "./setup.cp" )
+	if e != nil {
+		panic(e)
+	}
+	bufin := bufio.NewReader( file )
+	promises := ParsePromises( bufin )
+
+	for k,v := range(promises) {
+		if k == "done" {
+			fmt.Printf("%s: %s\n", k,v)
+		}
 	}
 }
