@@ -3,7 +3,7 @@ package promise
 // TODO rename to NamedPromiseInvocation
 
 type NamedPromiseUsage struct {
-	Promise NamedPromise
+	Promise *NamedPromise
 	Arguments []Argument
 }
 

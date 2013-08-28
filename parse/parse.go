@@ -43,12 +43,12 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 		return promise.AndPromise{ values }
 	case "or":
 		if primary {
-			panic( "(and) promise not allowed as primary promise" )
+			panic( "(or) promise not allowed as primary promise" )
 		}
 		return promise.OrPromise{ values }
 	case "exec":
 		if primary {
-			panic( "(and) promise not allowed as primary promise" )
+			panic( "(exec) promise not allowed as primary promise" )
 		}
 		return promise.ExecPromise{ up.Arguments }
 	case "pipe":
@@ -75,7 +75,7 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 		} else {
 			if _, ok := promises[up.Name]; ok {
 				np := promises[up.Name].(*promise.NamedPromise)
-				return promise.NamedPromiseUsage{*np, up.Arguments}
+				return promise.NamedPromiseUsage{np, up.Arguments}
 			} else {
 				panic("didn't find promise (" + up.Name + ")")
 			}
