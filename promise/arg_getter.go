@@ -5,6 +5,9 @@ type ArgGetter struct {
 }
 
 func (argGetter ArgGetter) GetValue(arguments []Constant) string {
+	if len(arguments) <= argGetter.Position {
+		return ""
+	}
 	return arguments[argGetter.Position].Value
 }
 
