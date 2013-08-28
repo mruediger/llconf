@@ -27,6 +27,7 @@ func (p ExecPromise) getCommand(arguments []Constant) *exec.Cmd {
 	args := []string{}
 	
 	for _,argument := range(largs) {
+
 		args = append(args,argument.GetValue(arguments))
 	}
 
@@ -37,7 +38,7 @@ func (p ExecPromise) getCommand(arguments []Constant) *exec.Cmd {
 
 func (p ExecPromise) Desc(arguments []Constant) string {
 	cmd := p.getCommand(arguments)
-	return "(exec in_dir(" + cmd.Dir + ") <" + cmd.Path + " [" + strings.Join(cmd.Args,", ") + "] >)"
+	return "(exec in_dir(" + cmd.Dir + ") <" + cmd.Path + " [" + strings.Join(cmd.Args[1:],", ") + "] >)"
 }
 
 func (p ExecPromise) Eval(arguments []Constant) bool {
