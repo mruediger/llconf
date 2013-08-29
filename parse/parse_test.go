@@ -28,7 +28,8 @@ func TestReadPromise(t *testing.T) {
 			}, []promise.Argument{}}},
 	}
 	for _,c := range tests {
-		got := ReadPromises( strings.NewReader(c.input ) )[0]
+		promises,_ := ReadPromises( strings.NewReader(c.input ) )
+		got := promises[0]
 		if ! reflect.DeepEqual(got, c.want) {
 			t.Errorf("ReadPromises(%q) == %q, want %q", c.input, got, c.want)
 		}
@@ -40,7 +41,7 @@ func TestPromiseFile(t *testing.T) {
 	bufin := bufio.NewReader( file )
 
 
-	promises := ReadPromises( bufin )
+	promises,_ := ReadPromises( bufin )
 	len_wanted := 16
 	
 	if len( promises ) != len_wanted {
@@ -55,7 +56,7 @@ func TestParser(t *testing.T) {
 		panic(e)
 	}
 	bufin := bufio.NewReader( file )
-	promises := ParsePromises( bufin )
+	promises,_ := ParsePromises( bufin )
 
 	for k,v := range(promises) {
 		if k == "done" {

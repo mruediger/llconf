@@ -10,14 +10,14 @@ import (
 	"github.com/mruediger/llconf/promise"
 )
 
-type ArgumentError int
+type CliError int
 
 const (
-	NotEnoughArguments ArgumentError = iota
+	NotEnoughArguments CliError = iota
 	UnknownMainOption
 )
 
-func (err ArgumentError) Error() string {
+func (err CliError) Error() string {
 	switch err {
 	case NotEnoughArguments:
 		return "not enough arguments"
@@ -36,7 +36,6 @@ type ServeConfig struct {
 	Goal string
 	Input io.RuneScanner
 	Verbose bool
-	ParseOnly bool
 }
 
 func (this ServeConfig) Run() error {
@@ -52,20 +51,17 @@ type RunConfig struct {
 
 func (this RunConfig) Run() error {
 	fmt.Println("reading from stdin")
-	promises := parse.ParsePromises( this.Input )
-	for k,v := range(promises) {
-		fmt.Printf("present %s\n", v)
+	promises,err := parse.ParsePromises( this.Input )
 
-		if k == this.Goal {
-			fmt.Printf("evaluating %s\n", v)
-			if v.Eval([]promise.Constant{}) {
-				fmt.Println("success")
-			} else {
-				fmt.Println("failure")
-			}
-		} 
+	success := promises[this.Goal].Eval([]promise.Constant{})
+
+	if success {
+		fmt.Println("evaluation successful")
+	} else {
+		fmt.Println("evaluation not successful")
 	}
-	return nil
+
+	return err
 }
 
 
@@ -90,7 +86,6 @@ func processServeFlags(progName string, input io.RuneScanner,  args []string) (C
 	flagSet := flag.NewFlagSet(progName, 0)
 	goal := flagSet.String("promise", "done", "the promise that should be evaluated")
 	verbose := flagSet.Bool("verbose", false, "enable verbose output")
-	parseOnly := flagSet.Bool("parse-only", false, "only parse the input")
 	flagSet.Parse(args)
 
 	return ServeConfig{ Goal: *goal, Input: input, Verbose: *verbose, ParseOnly: *parseOnly },nil
