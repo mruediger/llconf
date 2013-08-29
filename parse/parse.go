@@ -85,7 +85,7 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 }
 
 
-func readArgument( in io.RuneScanner, start rune ) (promise.Argument, error) {
+func readArgument( in io.RuneReader, start rune ) (promise.Argument, error) {
 	name := ""
 	nameDone := false
 	value := ""
@@ -134,7 +134,7 @@ func readArgument( in io.RuneScanner, start rune ) (promise.Argument, error) {
 	return nil, UnexpectedEOF{}
 }
 
-func ReadPromises( in io.RuneScanner ) ([]UnparsedPromise,error) {
+func ReadPromises( in io.RuneReader ) ([]UnparsedPromise,error) {
 	//skip all leading stuff till the start
 	//of the first promise
 
@@ -162,7 +162,7 @@ func ReadPromises( in io.RuneScanner ) ([]UnparsedPromise,error) {
 	}
 }
 			
-func readPromise( in io.RuneScanner ) (UnparsedPromise,error) {
+func readPromise( in io.RuneReader ) (UnparsedPromise,error) {
 	name := ""
 	promises := []UnparsedPromise{}
 	arguments := []promise.Argument{}
@@ -201,7 +201,7 @@ func readPromise( in io.RuneScanner ) (UnparsedPromise,error) {
 
 
 
-func ParsePromises( in io.RuneScanner ) (map[string]promise.Promise,error) {
+func ParsePromises( in io.RuneReader ) (map[string]promise.Promise,error) {
 	promises := map[string]promise.Promise{}
 	
 	unparsed,err := ReadPromises( in )

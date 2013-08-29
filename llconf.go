@@ -34,7 +34,7 @@ type CliConfig interface {
 
 type ServeConfig struct {
 	Goal string
-	Input io.RuneScanner
+	Input io.RuneReader
 	Verbose bool
 }
 
@@ -44,7 +44,7 @@ func (this ServeConfig) Run() error {
 
 type RunConfig struct {
 	Goal string
-	Input io.RuneScanner
+	Input io.RuneReader
 	Verbose bool
 	ParseOnly bool
 }
@@ -65,7 +65,7 @@ func (this RunConfig) Run() error {
 }
 
 
-func processArguments(args []string, input io.RuneScanner) (CliConfig, error) {
+func processArguments(args []string, input io.RuneReader) (CliConfig, error) {
 	if len(args) < 2 {
 		return nil,NotEnoughArguments
 	}
@@ -82,7 +82,7 @@ func processArguments(args []string, input io.RuneScanner) (CliConfig, error) {
 	}
 }
 
-func processServeFlags(progName string, input io.RuneScanner,  args []string) (CliConfig, error) {
+func processServeFlags(progName string, input io.RuneReader,  args []string) (CliConfig, error) {
 	flagSet := flag.NewFlagSet(progName, 0)
 	goal := flagSet.String("promise", "done", "the promise that should be evaluated")
 	verbose := flagSet.Bool("verbose", false, "enable verbose output")
@@ -91,7 +91,7 @@ func processServeFlags(progName string, input io.RuneScanner,  args []string) (C
 	return ServeConfig{ Goal: *goal, Input: input, Verbose: *verbose, ParseOnly: *parseOnly },nil
 }
 
-func processRunFlags(progName string, input io.RuneScanner, args []string) (CliConfig, error) {
+func processRunFlags(progName string, input io.RuneReader, args []string) (CliConfig, error) {
 	flagSet := flag.NewFlagSet(progName, 0)
 	goal := flagSet.String("promise", "done", "the promise that should be evaluated")
 	verbose := flagSet.Bool("verbose", false, "enable verbose output")
