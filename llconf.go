@@ -32,16 +32,6 @@ type CliConfig interface {
 	Run() error
 }
 
-type ServeConfig struct {
-	Goal string
-	Input io.RuneReader
-	Verbose bool
-}
-
-func (this ServeConfig) Run() error {
-	return nil
-}
-
 type RunConfig struct {
 	Goal string
 	Input io.RuneReader
@@ -88,7 +78,7 @@ func processServeFlags(progName string, input io.RuneReader,  args []string) (Cl
 	verbose := flagSet.Bool("verbose", false, "enable verbose output")
 	flagSet.Parse(args)
 
-	return ServeConfig{ Goal: *goal, Input: input, Verbose: *verbose, ParseOnly: *parseOnly },nil
+	return ServeConfig{ Goal: *goal, Input: input, Verbose: *verbose },nil
 }
 
 func processRunFlags(progName string, input io.RuneReader, args []string) (CliConfig, error) {
