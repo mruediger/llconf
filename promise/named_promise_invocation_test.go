@@ -4,7 +4,7 @@ import "testing"
 
 func TestNamedPromiseInvocation(t *testing.T) {
 	promise := new(NamedPromiseUsage)
-	promise.Promise = NamedPromise{ "test", DummyPromise{ "content", true }}
+	promise.Promise = &NamedPromise{ "test", DummyPromise{ "content", true }}
 	promise.Arguments = []Argument{ Constant{"hello"} , ArgGetter{1} }
 
 	equals(t,
