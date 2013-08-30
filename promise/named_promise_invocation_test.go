@@ -11,6 +11,7 @@ func TestNamedPromiseInvocation(t *testing.T) {
 		"(test (dummy [content]constant->hello constant->foo))",
 		promise.Desc([]Constant{Constant{"world"}, Constant{"foo"}}))
 
-	equals(t, true, promise.Eval([]Constant{Constant{"world"}, Constant{"foo"}}))
+	result,_,_ := promise.Eval([]Constant{Constant{"world"}, Constant{"foo"}})
+	equals(t, true, result)
 }
 

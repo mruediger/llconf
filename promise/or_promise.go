@@ -12,11 +12,14 @@ func (p OrPromise) Desc(arguments []Constant) string {
 	return "(or" + promises + ")"
 }
 
-func (p OrPromise) Eval(arguments []Constant) bool {
+func (p OrPromise) Eval(arguments []Constant) (result bool, stdout []string, stderr []string) {
 	for _,v := range(p.Promises) {
-		if v.Eval(arguments) == true {
-			return true
+		r,o,e := v.Eval(arguments)
+		stdout = append(stdout, o...)
+		stderr = append(stderr, e...)
+		if r == true {
+			return true, stdout, stderr
 		}
 	}
-	return false
+	return false, stdout, stderr
 }

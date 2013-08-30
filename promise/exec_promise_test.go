@@ -1,16 +1,24 @@
 package promise
 
 import (
+	"fmt"
 	"testing"
 )
 
 func TestExecPromiseDesc(t *testing.T) {
-	promise := ExecPromise{[]Argument{Constant{"/"},
+	var promise Promise
+	promise = ExecPromise{[]Argument{Constant{"/"},
 		Constant{"/bin/echo"},
 		Constant{"Hello"},
 		ArgGetter{0}}}
 	desc := promise.Desc([]Constant{Constant{"World"}})
 	equals(t, "(exec in_dir(/) </bin/echo [Hello, World] >)", desc)
+
+	res,sout,serr := promise.Eval([]Constant{})
+	equals(t, true, res)
+	equals(t, string(1), string(len(sout)))
+	equals(t, "Hello \n", sout[0])
+	equals(t, string(0), string(len(serr)))
 }
 
 func TestPipePromiseDesc(t *testing.T) {
@@ -20,10 +28,23 @@ func TestPipePromiseDesc(t *testing.T) {
 	exec2 := ExecPromise{[]Argument{Constant{"/tmp"},
 		Constant{"/usr/bin/rev"}}}
 
+	var promise Promise
+	
 	promises := []ExecPromise{exec1, exec2}
-	promise := PipePromise{promises}
+	promise = PipePromise{promises}
 	desc := promise.Desc([]Constant{})
 	equals(t, "(pipe "+
 		"(exec in_dir(/tmp) </bin/echo [hello world] >) "+
 		"(exec in_dir(/tmp) </usr/bin/rev [] >))", desc)
+
+	res,sout,serr := promise.Eval([]Constant{})
+	equals(t, true, res)
+	equals(t, string(1), string(len(sout)))
+	equals(t, "dlrow olleh\n", sout[0])
+	equals(t, string(0), string(len(serr)))
+
+
+	for _,v := range( append([]string{"a","b"}, []string{"c","d"}...)) {
+		fmt.Println(v)
+	}
 }

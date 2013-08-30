@@ -16,7 +16,7 @@ func (p NamedPromiseUsage) Desc(arguments []Constant) string {
 	return p.Promise.Desc(parsed_arguments)
 }
 
-func (p NamedPromiseUsage) Eval(arguments []Constant) bool {
+func (p NamedPromiseUsage) Eval(arguments []Constant) (bool,[]string,[]string) {
 	parsed_arguments := []Constant{}
 	for _,argument := range(p.Arguments) {
 		parsed_arguments = append(parsed_arguments, Constant{argument.GetValue(arguments)})

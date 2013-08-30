@@ -9,5 +9,6 @@ func TestNamedPromiseDesc(t *testing.T) {
 
 func TestNamedPromiseEval(t *testing.T) {
 	promise := NamedPromise{ "test", DummyPromise{ "Hello", true } }
-	equals(t, promise.Eval([]Constant{}), true)
+	result,_,_ := promise.Eval([]Constant{})
+	equals(t, result, true)
 }

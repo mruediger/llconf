@@ -46,15 +46,33 @@ func (this RunConfig) Run() error {
 	fmt.Println("reading from stdin")
 	promises,err := parse.ParsePromises( this.Input )
 
-	success := promises[this.Goal].Eval([]promise.Constant{})
-
-	if success {
-		fmt.Println("evaluation successful")
-	} else {
-		fmt.Println("evaluation not successful")
+	if err != nil {
+		return err
 	}
-
-	return err
+	
+	
+	success,sout,serr := promises[this.Goal].Eval([]promise.Constant{})	
+	if success {
+		fmt.Println("evaluation successful\n")
+		if this.Verbose {
+			for _,v := range(sout) {
+				fmt.Print(v)
+			}
+		}
+	} else {
+		fmt.Println("error during evaluation\n")
+		var msgs []string
+		if this.Verbose {
+				msgs = append(sout,serr...)
+		} else {
+			msgs = serr
+		}
+		for _,msg := range(msgs) {
+			fmt.Print(msg)
+		}
+	}
+	
+	return nil
 }
 
 

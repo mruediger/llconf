@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"fmt"
+	"bytes"
 )
 
 type ExecPromise struct {
@@ -41,17 +41,29 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 	return "(exec in_dir(" + cmd.Dir + ") <" + cmd.Path + " [" + strings.Join(cmd.Args[1:],", ") + "] >)"
 }
 
-func (p ExecPromise) Eval(arguments []Constant) bool {
+func (p ExecPromise) Eval(arguments []Constant) (bool,[]string,[]string) {
 	command := p.getCommand(arguments)
 
-	output, e := command.CombinedOutput()
+	var sout,serr bytes.Buffer
+	command.Stdout = &sout
+	command.Stderr = &serr
+	err := command.Run()
+	
+	stdout := []string{}
+	if str := sout.String(); len(str) > 0 {
+		stdout = append(stdout,str)
+	}
 
-	if e != nil {
-		fmt.Println(e, string(output))
-		return false
+	stderr := []string{}
+	if str := serr.String(); len(str) > 0 {
+		stderr = append(stderr,str)
+	}
+	
+	
+	if (err != nil) {
+		return false,stdout,stderr
 	} else {
-		fmt.Println(string(output))
-		return true
+		return true,stdout,stderr
 	}
 }
 
@@ -67,7 +79,7 @@ func (p PipePromise) Desc(arguments []Constant) string {
 	return retval + ")"
 }
 
-func (p PipePromise) Eval(arguments []Constant) bool {
+func (p PipePromise) Eval(arguments []Constant) (bool,[]string,[]string) {
 	commands := []*exec.Cmd{}
 
 	for _,v := range(p.Execs) {
@@ -83,12 +95,26 @@ func (p PipePromise) Eval(arguments []Constant) bool {
 		commands[i + 1].Stdin = out
 	}
 
-	output, err:= commands[len(commands) - 1].Output()
+	var sout,serr bytes.Buffer
+	
+	last_cmd := commands[len(commands) - 1]
+	last_cmd.Stdout = &sout
+	last_cmd.Stderr = &serr
+	err := last_cmd.Run()
+
+	stdout := []string{}
+	if str := sout.String(); len(str) > 0 {
+		stdout = append(stdout,str)
+	}
+
+	stderr := []string{}
+	if str := serr.String(); len(str) > 0 {
+		stderr = append(stderr,str)
+	}
+		
 	if (err != nil) {
-		fmt.Printf("%v %v\n", err, string(output))
-		return false
+		return false,stdout,stderr
 	} else {
-		fmt.Printf("%v\n", string(output))
-		return true
+		return true,stdout,stderr
 	}
 }

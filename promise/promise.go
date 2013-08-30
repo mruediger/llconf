@@ -2,7 +2,7 @@ package promise
 
 type Promise interface {
 	Desc(arguments []Constant) string
-	Eval(arguments []Constant) bool
+	Eval(arguments []Constant) (bool,[]string,[]string)
 }
 
 type Argument interface {
