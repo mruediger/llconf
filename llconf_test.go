@@ -11,7 +11,7 @@ func equals(t *testing.T, desc string, a interface{}, b interface{}) {
 }
 
 func TestProcessServeFlags(t *testing.T) {
-	args := []string{ "-input-folder", "."}
+	args := []string{ "-input-folder", "/tmp", "--incomming-folder","/var"}
 	
 	cfg,err := processServeFlags("llconf", args)
 
