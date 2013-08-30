@@ -4,10 +4,10 @@ import (
 	"os"
 	"io"
 	"bufio"
-
 	"path/filepath"
 	
 	"github.com/mruediger/llconf/parse"
+	"github.com/mruediger/llconf/promise"
 )
 
 type FolderRuneReaderError int
@@ -28,25 +28,70 @@ func (this FolderRuneReaderError) Error() string {
 type ServeConfig struct {
 	Goal string
 	InputFolder string
+	IncommingFolder string
 	Verbose bool
 }
 
 func (this ServeConfig) Run() error {
 	for {
-		this.processInputFiles()
+		promises,err := processFolder(this.IncommingFolder)
+		if err == nil {
+			copyFiles(this.IncommingFolder, this.InputFolder)
+		} else {
+			promises,err = processFolder(this.InputFolder)
+
+			// TODO report error
+		}
+
+		
+		promises[this.Goal].Eval([]promise.Constant{})	
+		//TODO report result
 	}
 	
 	return nil
 }
 
-func (this ServeConfig) processInputFiles() {
-	reader,err := NewFolderRuneReader( this.InputFolder )
+func processFolder(folder string) (map[string]promise.Promise, error) {
+	reader,err := NewFolderRuneReader( folder )
 	if err == nil {
-		parse.ParsePromises( &reader )
+		return parse.ParsePromises( &reader )
 	} else {
-		panic(err)
+	 	return nil,err
 	}
+}
+
+func copyFiles(from, to string) (err error) {
+	sf,err := os.Open(from)
+	if err != nil { return err }
+	defer sf.Close()
+
+	files, err := sf.Readdir(-1)
+	if err != nil { return err }
 	
+	for _,fi := range( files ) {
+		if fi.IsDir() {
+			continue
+		} else {
+			err = copyFile( filepath.Join(from, fi.Name()),
+				filepath.Join(to, fi.Name()))
+			if err != nil { return err }
+		}
+	}
+		
+	return nil
+}
+
+func copyFile(src_name, dst_name string) (err error) {
+	src, err := os.Open(src_name)
+	if err != nil { return }
+	defer src.Close()
+
+	dst, err := os.Create(dst_name)
+	if err != nil { return }
+	defer dst.Close()
+
+	_,err = io.Copy(dst,src)
+	return
 }
 
 type FolderRuneReader struct {
