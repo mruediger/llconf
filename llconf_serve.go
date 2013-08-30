@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	
 	"github.com/mruediger/llconf/io"
 	"github.com/mruediger/llconf/parse"
 	"github.com/mruediger/llconf/promise"
@@ -14,20 +15,20 @@ type ServeConfig struct {
 	Verbose bool
 }
 
-func (this ServeConfig) Run() error {
+func runServer(cfg ServeConfig) error {
 	for {
-		promises,err := processFolder(this.IncommingFolder)
+		promises,err := processFolder(cfg.IncommingFolder)
 		if err == nil {
-			io.CopyFiles(this.IncommingFolder, this.InputFolder)
+			io.CopyFiles(cfg.IncommingFolder, cfg.InputFolder)
 		} else {
 			log.Printf("error while parsing incomming folder: %v\n", err)
-			promises,err = processFolder(this.InputFolder)
+			promises,err = processFolder(cfg.InputFolder)
 		}
 		
-		success,sout,serr := promises[this.Goal].Eval([]promise.Constant{})	
+		success,sout,serr := promises[cfg.Goal].Eval([]promise.Constant{})	
 		if success {
 			log.Printf("evaluation successful\n")
-			if this.Verbose {
+			if cfg.Verbose {
 				for _,v := range(sout) {
 					log.Print(v)
 				}
@@ -35,7 +36,7 @@ func (this ServeConfig) Run() error {
 		} else {
 			log.Printf("error during evaluation\n")
 			var msgs []string
-			if this.Verbose {
+			if cfg.Verbose {
 				msgs = append(sout,serr...)
 			} else {
 				msgs = serr

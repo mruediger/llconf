@@ -5,9 +5,6 @@ import (
 	"os"
 	"bufio"
 	"flag"
-	"io"
-	"github.com/mruediger/llconf/parse"
-	"github.com/mruediger/llconf/promise"
 )
 
 type CliError int
@@ -16,6 +13,7 @@ const (
 	NotEnoughArguments CliError = iota
 	UnknownMainOption
 	NoInputFolder
+	NoIncommingFolder
 )
 
 func (err CliError) Error() string {
@@ -25,97 +23,98 @@ func (err CliError) Error() string {
 	case UnknownMainOption:
 		return "unknown main option"
 	case NoInputFolder:
-		return "no input folder specified"
+		return "no input folder was specified"
+	case NoIncommingFolder:
+		return "no incomming folder for downloaded files was specified"
 	default:
 		return "unknown error in commandline arguments"
 	}
 }
 
-type CliConfig interface {
-	Run() error
+func usage() {
+	fmt.Printf("usage: %s\n", os.Args[0])
+	fmt.Printf("\n")
+	fmt.Printf("   serve   starts serving files\n")
+	fmt.Printf("   run     evaluates promises from stdin\n")
+	fmt.Printf("\n")
 }
 
-type RunConfig struct {
-	Goal string
-	Input io.RuneReader
-	Verbose bool
-	ParseOnly bool
-}
-
-func (this RunConfig) Run() error {
-	fmt.Println("reading from stdin")
-	promises,err := parse.ParsePromises( this.Input )
-
-	if err != nil {
-		return err
-	}
+func main() {
+	args := os.Args
 	
-	
-	success,sout,serr := promises[this.Goal].Eval([]promise.Constant{})	
-	if success {
-		fmt.Println("evaluation successful\n")
-		if this.Verbose {
-			for _,v := range(sout) {
-				fmt.Print(v)
-			}
-		}
-	} else {
-		fmt.Println("error during evaluation\n")
-		var msgs []string
-		if this.Verbose {
-				msgs = append(sout,serr...)
-		} else {
-			msgs = serr
-		}
-		for _,msg := range(msgs) {
-			fmt.Print(msg)
-		}
-	}
-	
-	return nil
-}
-
-
-func processArguments(args []string) (CliConfig, error) {
 	if len(args) < 2 {
-		return nil,NotEnoughArguments
+		fmt.Fprintf(os.Stderr, "%s\n", NotEnoughArguments.Error())
+		usage()
+		os.Exit(1)
 	}
 
 	progName := args[0]
-	
+
+		
 	switch(args[1]) {
 	case "serve":
-		return processServeFlags(progName, args[2:])
+		config,err := processServeFlags(progName, args[2:])
+		if err == nil {
+			runServer(config)
+		} else {
+			fmt.Fprintf(os.Stderr, "argument error: %s\n", err.Error())
+			os.Exit(1)
+		}
 	case "run":
-		return processRunFlags(progName, args[2:])
+		config,err := processRunFlags(progName, args[2:])
+		if err == nil {
+		 	runClient(config)
+		} else {
+			fmt.Fprintf(os.Stderr, "argument error: %s\n", err.Error())
+			os.Exit(1)
+		}
 	default:
-		return nil,UnknownMainOption
+		fmt.Fprintf(os.Stderr, "unknown command: %s\n", args[1])
+		usage()
+		os.Exit(1)
 	}
 }
 
-func processServeFlags(progName string, args []string) (CliConfig, error) {
-	flagSet := flag.NewFlagSet(progName, 0)
+
+func processServeFlags(progName string, args []string) (ServeConfig, error) {
+	flagSet := flag.NewFlagSet(progName, flag.ExitOnError)
 	goal := flagSet.String("promise", "done", "the promise that should be evaluated")
 	verbose := flagSet.Bool("verbose", false, "enable verbose output")
-	inputFolder := flagSet.String("input-folder", "", "the input folder")
+	inputFolder := flagSet.String("input-folder", "", "the folder for input files")
+	incommingFolder := flagSet.String("incomming-folder", "", "the folder for updates")
+
+	flagSet.Usage = func() {
+		fmt.Printf("usage: %s serve\n\n", os.Args[0])
+		flagSet.PrintDefaults()
+		fmt.Printf("\n")
+	}
+	
 	flagSet.Parse(args)
 
 	if *inputFolder == "" {
-		*inputFolder = os.Getenv("LLCONF_INPUT")
-		if *inputFolder == "" {
-			return nil, NoInputFolder
-		}
+		flagSet.Usage()			
+		return ServeConfig{}, NoInputFolder
 	}
-	
-	
+
+	if *incommingFolder == "" {
+		flagSet.Usage()
+		return ServeConfig{}, NoIncommingFolder
+	}
 	return ServeConfig{ Goal: *goal, InputFolder: *inputFolder, Verbose: *verbose },nil
 }
 
-func processRunFlags(progName string, args []string) (CliConfig, error) {
-	flagSet := flag.NewFlagSet(progName, 0)
+func processRunFlags(progName string, args []string) (RunConfig, error) {
+	flagSet := flag.NewFlagSet(progName, flag.ExitOnError)
 	goal := flagSet.String("promise", "done", "the promise that should be evaluated")
 	verbose := flagSet.Bool("verbose", false, "enable verbose output")
 	parseOnly := flagSet.Bool("parse-only", false, "only parse the input")
+
+	flagSet.Usage = func() {
+		fmt.Printf("usage: %s run\n\n", os.Args[0])
+		flagSet.PrintDefaults()
+		fmt.Printf("\n")
+	}
+	
 	flagSet.Parse(args)
 
 	input := bufio.NewReader( os.Stdin )
@@ -123,12 +122,3 @@ func processRunFlags(progName string, args []string) (CliConfig, error) {
 	return RunConfig{ Goal: *goal, Input: input, Verbose: *verbose, ParseOnly: *parseOnly },nil
 }
 
-func main() {
-	runSetup,err := processArguments(os.Args)
-
-	if err == nil {
-		runSetup.Run()
-	} else {
-		fmt.Fprintf(os.Stderr, "argument error: %s\n", err.Error())
-	}
-}
