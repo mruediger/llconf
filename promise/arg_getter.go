@@ -1,5 +1,9 @@
 package promise
 
+import (
+	"strconv"
+)
+
 type ArgGetter struct {
 	Position int
 }
@@ -12,5 +16,5 @@ func (argGetter ArgGetter) GetValue(arguments []Constant) string {
 }
 
 func (argGetter ArgGetter) String() string {
-	return "arg->" + string(argGetter.Position)
+	return "arg->" + strconv.Itoa(argGetter.Position)
 }
