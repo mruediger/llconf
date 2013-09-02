@@ -22,8 +22,13 @@ func runClient(cfg RunConfig) error {
 	if err != nil {
 		return err
 	}
+
+	p,promise_present := promises[cfg.Goal]
+	if ! promise_present {
+		return SpecifiedGoalUnknown{cfg.Goal}
+	}
 	
-	success,sout,serr := promises[cfg.Goal].Eval([]promise.Constant{})	
+	success,sout,serr := p.Eval([]promise.Constant{})	
 	if success {
 		fmt.Println("evaluation successful\n")
 		if cfg.Verbose {
@@ -35,7 +40,7 @@ func runClient(cfg RunConfig) error {
 		fmt.Println("error during evaluation\n")
 		var msgs []string
 		if cfg.Verbose {
-				msgs = append(sout,serr...)
+			msgs = append(sout,serr...)
 		} else {
 			msgs = serr
 		}
@@ -43,6 +48,6 @@ func runClient(cfg RunConfig) error {
 			fmt.Print(msg)
 		}
 	}
-	
+
 	return nil
 }

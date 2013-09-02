@@ -24,8 +24,13 @@ func runServer(cfg ServeConfig) error {
 			log.Printf("error while parsing incomming folder: %v\n", err)
 			promises,err = processFolder(cfg.InputFolder)
 		}
+
+		p, promise_present := promises[cfg.Goal]
+		if ! promise_present {
+			return SpecifiedGoalUnknown{cfg.Goal}
+		}
 		
-		success,sout,serr := promises[cfg.Goal].Eval([]promise.Constant{})	
+		success,sout,serr := p.Eval([]promise.Constant{})	
 		if success {
 			log.Printf("evaluation successful\n")
 			if cfg.Verbose {

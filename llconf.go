@@ -31,6 +31,15 @@ func (err CliError) Error() string {
 	}
 }
 
+
+type SpecifiedGoalUnknown struct  {
+	Goal string
+}
+
+func (err SpecifiedGoalUnknown) Error() string {
+	return "specified goal (" + err.Goal +") not found in config"
+}
+
 func usage() {
 	fmt.Printf("usage: %s\n", os.Args[0])
 	fmt.Printf("\n")
@@ -55,7 +64,10 @@ func main() {
 	case "serve":
 		config,err := processServeFlags(progName, args[2:])
 		if err == nil {
-			runServer(config)
+			runerr := runServer(config)
+			if runerr != nil {
+				fmt.Fprintf(os.Stderr, "error: %s\n", runerr.Error())
+			}
 		} else {
 			fmt.Fprintf(os.Stderr, "argument error: %s\n", err.Error())
 			os.Exit(1)
@@ -63,7 +75,10 @@ func main() {
 	case "run":
 		config,err := processRunFlags(progName, args[2:])
 		if err == nil {
-		 	runClient(config)
+		 	runerr := runClient(config)
+			if runerr != nil {
+				fmt.Fprintf(os.Stderr, "error: %s\n", runerr.Error())
+			}
 		} else {
 			fmt.Fprintf(os.Stderr, "argument error: %s\n", err.Error())
 			os.Exit(1)
