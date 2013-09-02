@@ -1,7 +1,6 @@
 package promise
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -16,8 +15,8 @@ func TestExecPromiseDesc(t *testing.T) {
 
 	res,sout,serr := promise.Eval([]Constant{})
 	equals(t, true, res)
-	equals(t, string(1), string(len(sout)))
-	equals(t, "Hello \n", sout[0])
+	equals(t, string(2), string(len(sout)))
+	equals(t, "Hello \n", sout[1])
 	equals(t, string(0), string(len(serr)))
 }
 
@@ -39,12 +38,7 @@ func TestPipePromiseDesc(t *testing.T) {
 
 	res,sout,serr := promise.Eval([]Constant{})
 	equals(t, true, res)
-	equals(t, string(1), string(len(sout)))
-	equals(t, "dlrow olleh\n", sout[0])
+	equals(t, string(2), string(len(sout)))
+	equals(t, "dlrow olleh\n", sout[1])
 	equals(t, string(0), string(len(serr)))
-
-
-	for _,v := range( append([]string{"a","b"}, []string{"c","d"}...)) {
-		fmt.Println(v)
-	}
 }

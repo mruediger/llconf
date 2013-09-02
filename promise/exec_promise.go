@@ -49,7 +49,7 @@ func (p ExecPromise) Eval(arguments []Constant) (bool,[]string,[]string) {
 	command.Stderr = &serr
 	err := command.Run()
 	
-	stdout := []string{p.Desc(arguments)}
+	stdout := []string{strings.Join(command.Args, " ") + "\n"}
 	if str := sout.String(); len(str) > 0 {
 		stdout = append(stdout,str)
 	}
@@ -81,9 +81,12 @@ func (p PipePromise) Desc(arguments []Constant) string {
 
 func (p PipePromise) Eval(arguments []Constant) (bool,[]string,[]string) {
 	commands := []*exec.Cmd{}
-
+	cstrings := []string{}
+	
 	for _,v := range(p.Execs) {
-		commands = append(commands, v.getCommand(arguments))
+		cmd :=  v.getCommand(arguments)
+		cstrings = append(cstrings, strings.Join(cmd.Args, " "))
+		commands = append(commands, cmd)
 	}
 
 	for i, command := range(commands[:len(commands) - 1]) {
@@ -102,7 +105,8 @@ func (p PipePromise) Eval(arguments []Constant) (bool,[]string,[]string) {
 	last_cmd.Stderr = &serr
 	err := last_cmd.Run()
 
-	stdout := []string{p.Desc(arguments)}
+
+	stdout := []string{ strings.Join(cstrings, " | ") + "\n" }
 	if str := sout.String(); len(str) > 0 {
 		stdout = append(stdout,str)
 	}
