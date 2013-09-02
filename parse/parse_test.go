@@ -2,7 +2,6 @@ package parse
 
 import (
 	"testing"
-	"fmt"
 	"bufio"
 	"os"
 	"strings"
@@ -26,6 +25,8 @@ func TestReadPromise(t *testing.T) {
 				UnparsedPromise{ "bash", []UnparsedPromise{}, []promise.Argument{}},
 				UnparsedPromise{ "vim", []UnparsedPromise{}, []promise.Argument{}},
 			}, []promise.Argument{}}},
+
+			
 	}
 	for _,c := range tests {
 		promises,_ := ReadPromises( strings.NewReader(c.input ) )
@@ -33,6 +34,43 @@ func TestReadPromise(t *testing.T) {
 		if ! reflect.DeepEqual(got, c.want) {
 			t.Errorf("ReadPromises(%q) == %q, want %q", c.input, got, c.want)
 		}
+	}
+}
+
+func TestReadArguments(t *testing.T) {
+	var tests = []struct {
+		input string
+		want UnparsedPromise
+	}{
+		{ "(test \"echo\" [join \"hello\" \"world\"])",
+			UnparsedPromise{ "test", []UnparsedPromise{}, []promise.Argument{ promise.Constant{"echo"},
+				promise.JoinArgument{ []promise.Argument{ promise.Constant{ "hello" }, promise.Constant{ "world" }}}}}},
+	}
+	for _,test := range tests {
+		promises,_ := ReadPromises( strings.NewReader(test.input) )
+		got := promises[0]
+		if ! reflect.DeepEqual(got, test.want) {
+			t.Errorf("ReadPromises(%q) == %q, want %q", test.input, got, test.want)
+		}
+	}
+}
+
+func TestReadJoiner(t *testing.T) {
+	input := "join [arg:0] [env:test]]"
+	reader :=  strings.NewReader(input ) 
+	got,err := readArgument( reader, '[')
+
+	if err != nil {
+		panic(err)
+	}
+	
+	want := promise.JoinArgument{ []promise.Argument{ promise.ArgGetter{0}, promise.EnvGetter{"test"} }}
+	if ! reflect.DeepEqual(got, want) {
+		t.Errorf("readJoin(%q) == %q, wanted %q", input, got, want)
+	}
+
+	if reader.Len() > 0 {
+		t.Errorf("%d chars left in reader",reader.Len())
 	}
 }
 
@@ -49,18 +87,3 @@ func TestPromiseFile(t *testing.T) {
 	}
 }
 
-
-func TestParser(t *testing.T) {
-	file,e := os.Open( "./setup.cp" )
-	if e != nil {
-		panic(e)
-	}
-	bufin := bufio.NewReader( file )
-	promises,_ := ParsePromises( bufin )
-
-	for k,v := range(promises) {
-		if k == "done" {
-			fmt.Printf("%s: %s\n", k,v)
-		}
-	}
-}

@@ -89,14 +89,12 @@ func readArgument( in io.RuneReader, start rune ) (promise.Argument, error) {
 	name := ""
 	nameDone := false
 	value := ""
-
+	
 	for {
 		r,_,e := in.ReadRune()
-
 		if e != nil {
 			return nil,e
 		}
-
 
 		switch {
 		case r == '"' && start == '"':
@@ -105,6 +103,8 @@ func readArgument( in io.RuneReader, start rune ) (promise.Argument, error) {
 			} else {
 				return promise.Constant{name},nil
 			}
+		case (r == '[' || r == '"') && strings.TrimSpace(name) == "join":
+			return readJoin(in,r)
 		case r == ']' && start == '[':
 			name = strings.TrimSpace(name)
 			value = strings.TrimSpace(value)
@@ -134,6 +134,43 @@ func readArgument( in io.RuneReader, start rune ) (promise.Argument, error) {
 	return nil, UnexpectedEOF{}
 }
 
+func readJoin( in io.RuneReader, last rune ) (promise.JoinArgument, error) {
+	joiner := promise.JoinArgument{}
+
+	for {
+		var r rune
+		var e error
+
+		// FIXME
+		// small hack to unread the last rune
+		// it is needed so it is possible to
+		if last == 'x' {
+			r,_,e = in.ReadRune()
+		
+			if e != nil {
+				return joiner,e
+			}
+		} else {
+			r = last
+			last = 'x'
+		}
+
+		
+		switch {
+		case r == '"' || r == '[':
+			argument, err := readArgument(in,r)
+			if err == nil {
+				joiner.Args = append(joiner.Args, argument)
+			} else {
+				return joiner,err
+			}
+		case r == ']':
+			return joiner,nil
+		}
+	}
+	return joiner, UnexpectedEOF{}
+}
+
 func ReadPromises( in io.RuneReader ) ([]UnparsedPromise,error) {
 	//skip all leading stuff till the start
 	//of the first promise
@@ -142,7 +179,6 @@ func ReadPromises( in io.RuneReader ) ([]UnparsedPromise,error) {
 	
 	for {
 		r,_,e := in.ReadRune()
-		
 		if e != nil {
 			if ( e == io.EOF ) {
 				return promises,nil
@@ -179,14 +215,14 @@ func readPromise( in io.RuneReader ) (UnparsedPromise,error) {
 			if err == nil {
 				arguments = append(arguments, argument)
 			} else {
-				return UnparsedPromise{},e
+				return UnparsedPromise{},err
 			}
 		case r == '(':
 			promise,err := readPromise(in)
 			if err == nil {
 				promises = append(promises, promise)
 			} else {
-				return UnparsedPromise{},e
+				return UnparsedPromise{},err
 			}
 		case r == ')':
 			return UnparsedPromise{ strings.TrimSpace(name), promises, arguments }, nil
