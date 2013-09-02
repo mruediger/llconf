@@ -4,7 +4,6 @@ import (
 	"os"
 	"io"
 	"bufio"
-	"bytes"
 	"path/filepath"
 )
 
@@ -64,19 +63,32 @@ type FolderRuneReader struct {
 }
 
 func (this *FolderRuneReader) ReadRune() (r rune, s int, e error) {
-	
+	if this.reader == nil {
+		return ' ', -1, nil
+	}
+
+
 	r,s,e = this.reader.ReadRune()
 
 	if e == io.EOF {
 		if len(this.files) != 0 {
 			filename := this.files[0]
 			this.files = this.files[1:]
-			file,_ := os.Open(filename)
+			file,err := os.Open(filename)
+			if err != nil {
+				return ' ',-1,err
+			}
 			this.reader = bufio.NewReader( file )
 			r,s,e = this.reader.ReadRune()
 		}
 	}
+
+	if e == os.ErrInvalid {
+		panic("foo")
+	}
+	
 	return r,s,e
+	
 }
 
 func NewFolderRuneReader(folder string) (FolderRuneReader, error) {
@@ -102,8 +114,7 @@ func NewFolderRuneReader(folder string) (FolderRuneReader, error) {
 	
 	
 	if len(files) == 0 {
-		reader := bytes.NewBufferString("")
-		return FolderRuneReader{reader: reader},nil
+		return FolderRuneReader{},nil
 	}
 	
 	fp,err = os.Open(files[0])
@@ -112,8 +123,8 @@ func NewFolderRuneReader(folder string) (FolderRuneReader, error) {
 		return FolderRuneReader{},err
 	}
 	
-	reader := bufio.NewReader( fp )		
-	
+	reader := bufio.NewReader( fp )
+
 	files = files[1:]
 	return FolderRuneReader{files, reader }, nil
 	
