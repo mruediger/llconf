@@ -37,12 +37,15 @@ func runClient(cfg RunConfig) error {
 			}
 		}
 	} else {
-		fmt.Println("error during evaluation\n")
+		fmt.Println("error during evaluation")
 		var msgs []string
 		if cfg.Verbose {
 			msgs = append(sout,serr...)
 		} else {
 			msgs = serr
+		}
+		if len(msgs) == 0 {
+			fmt.Println("no messages returned by exec")
 		}
 		for _,msg := range(msgs) {
 			fmt.Print(msg)
