@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 	
 	"github.com/mruediger/llconf/io"
 	"github.com/mruediger/llconf/parse"
@@ -16,12 +17,20 @@ type ServeConfig struct {
 }
 
 func runServer(cfg ServeConfig) error {
+	quit := make(chan int)
+	
 	for {
+		go func(q chan int) {
+			time.Sleep(time.Second * 15)
+			q <- 0
+		}(quit)
+
+		
 		promises,err := processFolder(cfg.IncommingFolder)
 		if err == nil {
 			io.CopyFiles(cfg.IncommingFolder, cfg.InputFolder)
 		} else {
-			log.Printf("error while parsing incomming folder: %v\n", err)
+			log.Printf("error while parsing input folder: %v\n", err)
 			promises,err = processFolder(cfg.InputFolder)
 		}
 
@@ -50,6 +59,8 @@ func runServer(cfg ServeConfig) error {
 				log.Print(msg)
 			}
 		}
+
+		<-quit
 	}
 	
 	return nil

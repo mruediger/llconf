@@ -115,7 +115,10 @@ func processServeFlags(progName string, args []string) (ServeConfig, error) {
 		flagSet.Usage()
 		return ServeConfig{}, NoIncommingFolder
 	}
-	return ServeConfig{ Goal: *goal, InputFolder: *inputFolder, Verbose: *verbose },nil
+	return ServeConfig{ Goal: *goal,
+		                InputFolder: *inputFolder,
+		                IncommingFolder: *incommingFolder,
+		                Verbose: *verbose },nil
 }
 
 func processRunFlags(progName string, args []string) (RunConfig, error) {
