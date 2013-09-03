@@ -121,7 +121,7 @@ func readArgument( in io.RuneReader, start rune ) (promise.Argument, error) {
 			default:
 				return nil, UnknownGetterType{name}
 			}
-		case r == ':':
+		case r == ':' && start != '"':
 			nameDone = true
 		default:
 			if !nameDone {

@@ -45,6 +45,8 @@ func TestReadArguments(t *testing.T) {
 		{ "(test \"echo\" [join \"hello\" \"world\"])",
 			UnparsedPromise{ "test", []UnparsedPromise{}, []promise.Argument{ promise.Constant{"echo"},
 				promise.JoinArgument{ []promise.Argument{ promise.Constant{ "hello" }, promise.Constant{ "world" }}}}}},
+		{ "(test \"bla:fa:sel\")",
+			UnparsedPromise{ "test", []UnparsedPromise{}, []promise.Argument{ promise.Constant{"bla:fa:sel"}}}},
 	}
 	for _,test := range tests {
 		promises,_ := ReadPromises( strings.NewReader(test.input) )
