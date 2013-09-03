@@ -4,6 +4,7 @@ import (
 	"os"
 	"io"
 	"bufio"
+	"errors"
 	"path/filepath"
 )
 
@@ -17,11 +18,13 @@ func CopyFiles(from, to string) (err error) {
 	if err != nil { return err }
 	
 	for _,fi := range( files ) {
+		src,dest := filepath.Join(from, fi.Name()), filepath.Join(to, fi.Name())
 		if fi.IsDir() {
-			continue
+			os.Mkdir(dest,fi.Mode())
+			err = CopyFiles(src,dest)
+			if err != nil { return err }
 		} else {
-			err = copyFile( filepath.Join(from, fi.Name()),
-				filepath.Join(to, fi.Name()))
+			err = copyFile(src,dest)
 			if err != nil { return err }
 		}
 	}
@@ -64,7 +67,12 @@ type FolderRuneReader struct {
 
 func (this *FolderRuneReader) ReadRune() (r rune, s int, e error) {
 	if this.reader == nil {
-		return ' ', -1, nil
+		if len(this.files) > 0 {
+			this.UpdateReader()
+		} else {
+			return ' ',-1,nil
+		}
+		
 	}
 
 
@@ -72,60 +80,45 @@ func (this *FolderRuneReader) ReadRune() (r rune, s int, e error) {
 
 	if e == io.EOF {
 		if len(this.files) != 0 {
-			filename := this.files[0]
-			this.files = this.files[1:]
-			file,err := os.Open(filename)
-			if err != nil {
-				return ' ',-1,err
-			}
-			this.reader = bufio.NewReader( file )
+			this.UpdateReader()
 			r,s,e = this.reader.ReadRune()
 		}
 	}
-
-	if e == os.ErrInvalid {
-		panic("foo")
-	}
 	
 	return r,s,e
-	
 }
+
+
+func (this *FolderRuneReader) UpdateReader() error {
+	for len(this.files) > 0 {
+		filename := this.files[0]
+		this.files = this.files[1:]
+		file,err := os.Open(filename)
+		if err != nil {
+			continue
+		} else {
+			this.reader = bufio.NewReader(file)
+			return nil
+		}
+	}
+	return errors.New("list of files is empty")
+}
+
 
 func NewFolderRuneReader(folder string) (FolderRuneReader, error) {
 	files := []string{}
-	fp,err := os.Open(folder)
+	
+	visit := func(path string, info os.FileInfo, err error) error {
+		if ! info.IsDir() {
+			files = append(files,path)
+		}
+		return nil
+	}
 
+	err := filepath.Walk(folder, visit)
 	if err != nil {
 		return FolderRuneReader{}, err
+	} else {
+		return FolderRuneReader{files: files}, nil
 	}
-	
-
-	basenames,err := fp.Readdir(-1)
-	if err != nil {
-		return FolderRuneReader{},err
-	}
-
-	for _,v := range( basenames ) {
-		if ! v.IsDir() {
-			files = append( files, filepath.Join(fp.Name(), v.Name()))
-		}
-	}
-
-	
-	
-	if len(files) == 0 {
-		return FolderRuneReader{},nil
-	}
-	
-	fp,err = os.Open(files[0])
-	
-	if err != nil {
-		return FolderRuneReader{},err
-	}
-	
-	reader := bufio.NewReader( fp )
-
-	files = files[1:]
-	return FolderRuneReader{files, reader }, nil
-	
 }
