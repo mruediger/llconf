@@ -21,7 +21,7 @@ func runServer(cfg ServeConfig) error {
 	
 	for {
 		go func(q chan int) {
-			time.Sleep(time.Second * 15)
+			time.Sleep(time.Minute * 2)
 			q <- 0
 		}(quit)
 
