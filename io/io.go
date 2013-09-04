@@ -109,6 +109,9 @@ func NewFolderRuneReader(folder string) (FolderRuneReader, error) {
 	files := []string{}
 	
 	visit := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if ! info.IsDir() {
 			files = append(files,path)
 		}
