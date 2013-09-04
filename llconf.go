@@ -40,7 +40,7 @@ func (err SpecifiedGoalUnknown) Error() string {
 	return "specified goal (" + err.Goal +") not found in config"
 }
 
-func usage() {
+func usageOld() {
 	fmt.Printf("usage: %s\n", os.Args[0])
 	fmt.Printf("\n")
 	fmt.Printf("   serve   starts serving files\n")
@@ -48,7 +48,7 @@ func usage() {
 	fmt.Printf("\n")
 }
 
-func main() {
+func mainOld() {
 	args := os.Args
 	
 	if len(args) < 2 {
