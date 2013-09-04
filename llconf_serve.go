@@ -41,14 +41,13 @@ func runServer(cfg ServeConfig) error {
 		
 		success,sout,serr := p.Eval([]promise.Constant{})	
 		if success {
-			log.Printf("evaluation successful\n")
 			if cfg.Verbose {
 				for _,v := range(sout) {
 					log.Print(v)
 				}
 			}
+			log.Printf("evaluation successful\n")
 		} else {
-			log.Printf("error during evaluation\n")
 			var msgs []string
 			if cfg.Verbose {
 				msgs = append(sout,serr...)
@@ -58,6 +57,7 @@ func runServer(cfg ServeConfig) error {
 			for _,msg := range(msgs) {
 				log.Print(msg)
 			}
+			log.Printf("error during evaluation\n")
 		}
 
 		<-quit
