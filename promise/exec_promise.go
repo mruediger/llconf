@@ -105,6 +105,10 @@ func (p PipePromise) Eval(arguments []Constant) (bool,[]string,[]string) {
 	last_cmd.Stderr = &serr
 	err := last_cmd.Run()
 
+	for _, command := range(commands[:len(commands) - 1]) {
+		command.Wait()
+	}
+	
 
 	stdout := []string{ strings.Join(cstrings, " | ") + "\n" }
 	if str := sout.String(); len(str) > 0 {
