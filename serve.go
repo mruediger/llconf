@@ -80,10 +80,11 @@ func checkPromises(p promise.Promise, logi, loge *log.Logger) {
 		}
 		logi.Printf("evaluation successful\n")
 	} else {
+		var msgs []string
 		if serve_cfg.verbose {
-			msgs = append(sout,serr...)
+			msgs = append(stdout, stderr...)
 		} else {
-			msgs = serr
+			msgs = stderr
 		}
 		for _,msg := range(msgs) {
 			loge.Print(msg)

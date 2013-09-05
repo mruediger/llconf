@@ -21,9 +21,6 @@ var commands = []*Command{
 	serve,
 }
 
-var run = &Command{}
-
-
 func main() {
 	flag.Usage = usage
 	args := flag.Args()
