@@ -3,10 +3,14 @@ package main
 import (
 	"time"
 	"log"
-
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	
 	"github.com/mruediger/llconf/io"
 	"github.com/mruediger/llconf/parse"
-	"github.com/mruediger/llconf/promise"
+	libpromise "github.com/mruediger/llconf/promise"
 )
 
 var serve = &Command{
@@ -21,60 +25,77 @@ var serve_cfg struct{
 	promise string
 	verbose bool
 	interval int
-	inc_dir string
 	inp_dir string
+	workdir string
 }
 
 func init() {
 	serve.Flag.IntVar(&serve_cfg.interval, "interval", 300, "the minium time between promise evaluation")
 	serve.Flag.BoolVar(&serve_cfg.verbose, "verbose", false, "enable verbose output")
 	serve.Flag.StringVar(&serve_cfg.promise, "promise", "done", "the promise that will be used as root")
-	serve.Flag.StringVar(&serve_cfg.inc_dir, "incomming-folder", "/var/llconf/incomming", "the folder containing updates files")
-	serve.Flag.StringVar(&serve_cfg.inp_dir, "input-folder", "/var/llconf/input", "the folder containing input files")
+	serve.Flag.StringVar(&serve_cfg.inp_dir, "input-folder", "", "the folder containing input files")
 }
 
 func runServ(args []string, logi, loge *log.Logger) {
+	switch len(args) {
+	case 0:
+		fmt.Fprintf(os.Stderr, "no workdir specified\n")
+		os.Exit(1)
+		return
+	case 1:
+		serve_cfg.workdir = args[0]
+	default:
+		fmt.Fprintf(os.Stderr, "argument count mismatch")
+		os.Exit(1)
+	}
+
+	if serve_cfg.inp_dir == "" {
+		serve_cfg.inp_dir = filepath.Join(serve_cfg.workdir, "input")
+	}
+		
 	quit := make(chan int)
 
+	var promise libpromise.Promise
+	
 	for {
 		go func(q chan int) {
 			time.Sleep(time.Duration(serve_cfg.interval) * time.Second)
 			q <- 0
 		}(quit)
 
-		promises,err := parseFolder(serve_cfg.inc_dir)
+		new_promise, err := updatePromise(serve_cfg.inp_dir, serve_cfg.promise)
 		if err == nil {
-			io.CopyFiles(serve_cfg.inc_dir, serve_cfg.inp_dir)
+			promise = new_promise
 		} else {
 			loge.Printf("error while parsing input folder: %v\n",err)
-			promises,err = parseFolder(serve_cfg.inp_dir)
 		}
-
-		if promise,promise_present := promises[serve_cfg.promise]; promise_present {
-			checkPromises(promise,logi,loge)
-		} else {
-			loge.Printf("root promise unknown (%s)\n", serve_cfg.promise)
-		}
+		
+		checkPromise(promise,logi,loge)
 			
 		<-quit
 	}
 }
 
-func parseFolder(folder string) (map[string]promise.Promise, error) {
+func updatePromise(folder, root string ) (libpromise.Promise, error) {
 	globals := map[string]string{}
-	globals["incomming_dir"] = serve_cfg.inc_dir
 	globals["input_dir"] = serve_cfg.inp_dir
+	globals["work_dir"] = serve_cfg.workdir
 	
 	reader,err := io.NewFolderRuneReader( folder )
-	if err == nil {
-		return parse.ParsePromises( &reader, &globals )
+	if err != nil { return nil, err}
+
+	promises, err := parse.ParsePromises( &reader, &globals )
+	if err != nil { return nil, err}
+
+	if promise, promise_present := promises[root]; promise_present {
+		return promise, nil
 	} else {
-	 	return nil,err
+		return nil, errors.New("root promise (" + root + ") unknown")
 	}
 }
 
-func checkPromises(p promise.Promise, logi, loge *log.Logger) {
-	promises_fullfilled,stdout,stderr := p.Eval([]promise.Constant{})
+func checkPromise(p libpromise.Promise, logi, loge *log.Logger) {
+	promises_fullfilled,stdout,stderr := p.Eval([]libpromise.Constant{})
 
 	if promises_fullfilled {
 		if serve_cfg.verbose {
@@ -96,3 +117,4 @@ func checkPromises(p promise.Promise, logi, loge *log.Logger) {
 		loge.Printf("error during evaluation\n")
 	}
 }
+
