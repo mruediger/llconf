@@ -22,10 +22,12 @@ var run_cfg struct{
 	input string
 	promise string
 	verbose bool
+	dryrun bool
 }
 
 func init() {
 	run.Flag.BoolVar(&run_cfg.verbose, "verbose", false, "enable verbose output")
+	run.Flag.BoolVar(&run_cfg.dryrun, "dry-run", false, "just parse the promise and not check it")
 	run.Flag.StringVar(&run_cfg.promise, "promise", "done", "the promise that will be used as root")
 }
 
@@ -37,6 +39,7 @@ func execRun(args []string, logi, loge *log.Logger) {
 	case 1:
 		run_cfg.input = args[0]
 	default:
+		fmt.Fprintf(os.Stderr, "argument count mismatch")
 		os.Exit(1)
 	}
 	
@@ -57,6 +60,11 @@ func execRun(args []string, logi, loge *log.Logger) {
 	if !promise_present {
 		loge.Printf("specified goal (%s) not found in config\n", run_cfg.promise)
 	}
+
+	if run_cfg.dryrun {
+		return
+	}
+	
 	success,sout,serr := p.Eval([]promise.Constant{})
 	if success {
 		if run_cfg.verbose {
