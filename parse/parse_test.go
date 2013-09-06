@@ -29,7 +29,7 @@ func TestReadPromise(t *testing.T) {
 			
 	}
 	for _,c := range tests {
-		promises,_ := ReadPromises( strings.NewReader(c.input ) )
+		promises,_ := ReadPromises( strings.NewReader(c.input ), &map[string]string{})
 		got := promises[0]
 		if ! reflect.DeepEqual(got, c.want) {
 			t.Errorf("ReadPromises(%q) == %q, want %q", c.input, got, c.want)
@@ -38,6 +38,10 @@ func TestReadPromise(t *testing.T) {
 }
 
 func TestReadArguments(t *testing.T) {
+	var globals = map[string]string{
+		"foo":  "bar",
+	}
+		
 	var tests = []struct {
 		input string
 		want UnparsedPromise
@@ -47,12 +51,18 @@ func TestReadArguments(t *testing.T) {
 				promise.JoinArgument{ []promise.Argument{ promise.Constant{ "hello" }, promise.Constant{ "world" }}}}}},
 		{ "(test \"bla:fa:sel\")",
 			UnparsedPromise{ "test", []UnparsedPromise{}, []promise.Argument{ promise.Constant{"bla:fa:sel"}}}},
+		{ "(test [var:foo])",
+			UnparsedPromise{ "test", []UnparsedPromise{}, []promise.Argument{ promise.VarGetter{"foo",&globals}}}},
 	}
 	for _,test := range tests {
-		promises,_ := ReadPromises( strings.NewReader(test.input) )
-		got := promises[0]
-		if ! reflect.DeepEqual(got, test.want) {
-			t.Errorf("ReadPromises(%q) == %q, want %q", test.input, got, test.want)
+		promises,err := ReadPromises( strings.NewReader(test.input) , &globals )
+		if err != nil {
+			t.Errorf(err.Error())
+		} else {
+			got := promises[0]
+			if ! reflect.DeepEqual(got, test.want) {
+				t.Errorf("ReadPromises(%q) == %q, want %q", test.input, got, test.want)
+			}
 		}
 	}
 }
@@ -60,7 +70,7 @@ func TestReadArguments(t *testing.T) {
 func TestReadJoiner(t *testing.T) {
 	input := "join [arg:0] [env:test]]"
 	reader :=  strings.NewReader(input ) 
-	got,err := readArgument( reader, '[')
+	got,err := readArgument( reader, '[', &map[string]string{})
 
 	if err != nil {
 		panic(err)
@@ -81,7 +91,7 @@ func TestPromiseFile(t *testing.T) {
 	bufin := bufio.NewReader( file )
 
 
-	promises,_ := ReadPromises( bufin )
+	promises,_ := ReadPromises( bufin, &map[string]string{} )
 	len_wanted := 16
 	
 	if len( promises ) != len_wanted {

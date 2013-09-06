@@ -29,8 +29,8 @@ func init() {
 	serve.Flag.IntVar(&serve_cfg.interval, "interval", 300, "the minium time between promise evaluation")
 	serve.Flag.BoolVar(&serve_cfg.verbose, "verbose", false, "enable verbose output")
 	serve.Flag.StringVar(&serve_cfg.promise, "promise", "done", "the promise that will be used as root")
-	serve.Flag.StringVar(&serve_cfg.inc_dir, "/var/llconf/incomming", "", "the folder containing updates files")
-	serve.Flag.StringVar(&serve_cfg.inp_dir, "/var/llconf/input", "", "the folder containing input files")
+	serve.Flag.StringVar(&serve_cfg.inc_dir, "incomming-folder", "/var/llconf/incomming", "the folder containing updates files")
+	serve.Flag.StringVar(&serve_cfg.inp_dir, "input-folder", "/var/llconf/input", "the folder containing input files")
 }
 
 func runServ(args []string, logi, loge *log.Logger) {
@@ -61,9 +61,13 @@ func runServ(args []string, logi, loge *log.Logger) {
 }
 
 func parseFolder(folder string) (map[string]promise.Promise, error) {
+	globals := map[string]string{}
+	globals["incomming_dir"] = serve_cfg.inc_dir
+	globals["input_dir"] = serve_cfg.inp_dir
+	
 	reader,err := io.NewFolderRuneReader( folder )
 	if err == nil {
-		return parse.ParsePromises( &reader )
+		return parse.ParsePromises( &reader, &globals )
 	} else {
 	 	return nil,err
 	}

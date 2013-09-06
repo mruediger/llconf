@@ -45,8 +45,9 @@ func execRun(args []string, logi, loge *log.Logger) {
 		loge.Printf("could not open %q: %v\n", run_cfg.input, err)
 		return
 	}
-	
-	promises,err := parse.ParsePromises(input)
+
+	globals := map[string]string{}
+	promises,err := parse.ParsePromises(input,&globals)
 	if err != nil {
 		loge.Printf("error while parsing input: %v\n", err)
 		return
