@@ -18,6 +18,6 @@ func (p NamedPromise) String() string {
 }
 
 
-func (p NamedPromise) Eval(arguments []Constant) (bool,[]string,[]string) {
-	return p.Promise.Eval(arguments)
+func (p NamedPromise) Eval(arguments []Constant, logger *Logger) bool {
+	return p.Promise.Eval(arguments, logger)
 }

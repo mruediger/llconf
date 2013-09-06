@@ -8,6 +8,15 @@ import(
 	"log/syslog"
 )
 
+type LogWriter struct {
+	log *log.Logger
+}
+
+func (l LogWriter) Write(b []byte) (n int, err error) {
+	log.Print(string(b))
+	return len(b),nil
+}
+
 type Command struct {
 	Name string
 	Usage string

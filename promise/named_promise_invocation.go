@@ -16,11 +16,11 @@ func (p NamedPromiseUsage) Desc(arguments []Constant) string {
 	return p.Promise.Desc(parsed_arguments)
 }
 
-func (p NamedPromiseUsage) Eval(arguments []Constant) (bool,[]string,[]string) {
+func (p NamedPromiseUsage) Eval(arguments []Constant, logger *Logger) bool {
 	parsed_arguments := []Constant{}
 	for _,argument := range(p.Arguments) {
 		parsed_arguments = append(parsed_arguments, Constant{argument.GetValue(arguments)})
 	}
 
-	return p.Promise.Eval(parsed_arguments)
+	return p.Promise.Eval(parsed_arguments, logger)
 }

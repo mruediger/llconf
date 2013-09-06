@@ -12,16 +12,12 @@ func (p AndPromise) Desc(arguments []Constant) string {
 	return "(and" + promises + ")"
 }
 
-func (p AndPromise) Eval(arguments []Constant) (bool,[]string,[]string) {
-	stdout := []string{}
-	stderr := []string{}
+func (p AndPromise) Eval(arguments []Constant, logger *Logger) bool {
 	for _,v := range(p.Promises) {
-		result,o,e := v.Eval(arguments)
-		stdout = append(stdout,o...)
-		stderr = append(stderr,e...)
+		result := v.Eval(arguments, logger)
 		if result == false {
-			return false,stdout,stderr
+			return false
 		}
 	}
-	return true,stdout,stderr
+	return true
 }

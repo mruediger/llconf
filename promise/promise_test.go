@@ -19,8 +19,8 @@ func (p DummyPromise) Desc(arguments []Constant) string {
 	return "(dummy [" + p.StringValue + "]" + strings.Join(args," ") + ")"
 }
 
-func (p DummyPromise) Eval(arguments []Constant) (bool,[]string,[]string) {
-	return p.EvalValue,[]string{"hello"},[]string{"world"}
+func (p DummyPromise) Eval(arguments []Constant, logger *Logger) bool {
+	return p.EvalValue
 }
 
 func equals(t *testing.T, a interface{}, b interface{}) {

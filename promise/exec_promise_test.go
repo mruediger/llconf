@@ -2,6 +2,8 @@ package promise
 
 import (
 	"testing"
+	"bytes"
+	"strconv"
 )
 
 func TestExecPromiseDesc(t *testing.T) {
@@ -13,11 +15,14 @@ func TestExecPromiseDesc(t *testing.T) {
 	desc := promise.Desc([]Constant{Constant{"World"}})
 	equals(t, "(exec in_dir(/) </bin/echo [Hello, World] >)", desc)
 
-	res,sout,serr := promise.Eval([]Constant{})
+	var sout,serr bytes.Buffer
+	logger := Logger{&sout,&serr}
+	
+	res := promise.Eval([]Constant{},&logger)
 	equals(t, true, res)
-	equals(t, string(2), string(len(sout)))
-	equals(t, "Hello \n", sout[1])
-	equals(t, string(0), string(len(serr)))
+	equals(t, strconv.Itoa(24), strconv.Itoa(len(sout.String())))
+	equals(t, "/bin/echo Hello \nHello \n", sout.String())
+	equals(t, strconv.Itoa(0), strconv.Itoa(len(serr.String())))
 }
 
 func TestPipePromiseDesc(t *testing.T) {
@@ -36,9 +41,12 @@ func TestPipePromiseDesc(t *testing.T) {
 		"(exec in_dir(/tmp) </bin/echo [hello world] >) "+
 		"(exec in_dir(/tmp) </usr/bin/rev [] >))", desc)
 
-	res,sout,serr := promise.Eval([]Constant{})
+	var sout,serr bytes.Buffer
+	logger := Logger{&sout,&serr}
+	
+	res := promise.Eval([]Constant{}, &logger)
 	equals(t, true, res)
-	equals(t, string(2), string(len(sout)))
-	equals(t, "dlrow olleh\n", sout[1])
-	equals(t, string(0), string(len(serr)))
+	equals(t, strconv.Itoa(49), strconv.Itoa(len(sout.String())))
+	equals(t, "/bin/echo hello world | /usr/bin/rev\ndlrow olleh\n", sout.String())
+	equals(t, strconv.Itoa(0), strconv.Itoa(len(serr.String())))
 }

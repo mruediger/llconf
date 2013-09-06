@@ -64,26 +64,13 @@ func execRun(args []string, logi, loge *log.Logger) {
 	if run_cfg.dryrun {
 		return
 	}
+
+	logger := promise.Logger{LogWriter{logi}, LogWriter{loge}}
 	
-	success,sout,serr := p.Eval([]promise.Constant{})
+	success := p.Eval([]promise.Constant{}, &logger)
 	if success {
-		if run_cfg.verbose {
-			for _,msg := range(sout) {
-				logi.Println(msg)
-			}
-		}
 		logi.Println("evaluation successful\n")
 	} else {
-		var msgs []string
-		if run_cfg.verbose {
-			msgs = append(sout,serr...)
-		} else {
-			msgs = serr
-		}
-		for _,msg := range(msgs) {
-			loge.Println(msg)
-		}
-
 		loge.Println("error during evaluation")		
 	}
 }

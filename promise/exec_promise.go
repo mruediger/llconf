@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"bytes"
 )
 
 type ExecPromise struct {
@@ -41,29 +40,19 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 	return "(exec in_dir(" + cmd.Dir + ") <" + cmd.Path + " [" + strings.Join(cmd.Args[1:],", ") + "] >)"
 }
 
-func (p ExecPromise) Eval(arguments []Constant) (bool,[]string,[]string) {
+func (p ExecPromise) Eval(arguments []Constant, logger *Logger) bool {
 	command := p.getCommand(arguments)
+	command.Stdout = logger.Stdout
+	command.Stderr = logger.Stderr
 
-	var sout,serr bytes.Buffer
-	command.Stdout = &sout
-	command.Stderr = &serr
+	logger.Stdout.Write([]byte(strings.Join(command.Args, " ") + "\n"))
+	
 	err := command.Run()
 	
-	stdout := []string{strings.Join(command.Args, " ") + "\n"}
-	if str := sout.String(); len(str) > 0 {
-		stdout = append(stdout,str)
-	}
-
-	stderr := []string{}
-	if str := serr.String(); len(str) > 0 {
-		stderr = append(stderr,str)
-	}
-	
-	
 	if (err != nil) {
-		return false,stdout,stderr
+		return false
 	} else {
-		return true,stdout,stderr
+		return true
 	}
 }
 
@@ -79,7 +68,7 @@ func (p PipePromise) Desc(arguments []Constant) string {
 	return retval + ")"
 }
 
-func (p PipePromise) Eval(arguments []Constant) (bool,[]string,[]string) {
+func (p PipePromise) Eval(arguments []Constant, logger *Logger) bool {
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
 	
@@ -98,31 +87,21 @@ func (p PipePromise) Eval(arguments []Constant) (bool,[]string,[]string) {
 		commands[i + 1].Stdin = out
 	}
 
-	var sout,serr bytes.Buffer
+	logger.Stdout.Write([]byte(strings.Join(cstrings, " | ") + "\n"))
 	
 	last_cmd := commands[len(commands) - 1]
-	last_cmd.Stdout = &sout
-	last_cmd.Stderr = &serr
+	last_cmd.Stdout = logger.Stdout
+	last_cmd.Stderr = logger.Stderr
+
 	err := last_cmd.Run()
 
 	for _, command := range(commands[:len(commands) - 1]) {
 		command.Wait()
 	}
 	
-
-	stdout := []string{ strings.Join(cstrings, " | ") + "\n" }
-	if str := sout.String(); len(str) > 0 {
-		stdout = append(stdout,str)
-	}
-
-	stderr := []string{}
-	if str := serr.String(); len(str) > 0 {
-		stderr = append(stderr,str)
-	}
-		
 	if (err != nil) {
-		return false,stdout,stderr
+		return false
 	} else {
-		return true,stdout,stderr
+		return true
 	}
 }

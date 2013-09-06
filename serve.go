@@ -95,25 +95,12 @@ func updatePromise(folder, root string ) (libpromise.Promise, error) {
 }
 
 func checkPromise(p libpromise.Promise, logi, loge *log.Logger) {
-	promises_fullfilled,stdout,stderr := p.Eval([]libpromise.Constant{})
+	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge } }
+	promises_fullfilled := p.Eval([]libpromise.Constant{}, &logger)
 
 	if promises_fullfilled {
-		if serve_cfg.verbose {
-			for _,v := range(stdout) {
-				logi.Print(v)
-			}
-		}
 		logi.Printf("evaluation successful\n")
 	} else {
-		var msgs []string
-		if serve_cfg.verbose {
-			msgs = append(stdout, stderr...)
-		} else {
-			msgs = stderr
-		}
-		for _,msg := range(msgs) {
-			loge.Print(msg)
-		}
 		loge.Printf("error during evaluation\n")
 	}
 }
