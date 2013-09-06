@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"log"
+	"fmt"
 	"bufio"
 	
 	llconf_io "github.com/mruediger/llconf/io"
@@ -12,20 +13,36 @@ import (
 )
 
 var run = &Command{
+	Name: "run",
+	Usage: "run   [arguments...] [folder]",
 	Run: execRun,
 }
 
 var run_cfg struct{
 	input string
-	goal string
+	promise string
 	verbose bool
 }
-	
-func execRun(logi, loge *log.Logger) {
 
+func init() {
+	run.Flag.BoolVar(&run_cfg.verbose, "verbose", false, "enable verbose output")
+	run.Flag.StringVar(&run_cfg.promise, "promise", "done", "the promise that will be used as root")
+}
+
+func execRun(args []string, logi, loge *log.Logger) {
+	switch len(args) {
+	case 0:
+		run_cfg.input = ""
+		fmt.Println("no input folder specified, reading from stdin")
+	case 1:
+		run_cfg.input = args[0]
+	default:
+		os.Exit(1)
+	}
+	
 	input,err := openInput(run_cfg.input)
 	if err != nil {
-		loge.Printf("could not open %s: %v\n", run_cfg.input, err)
+		loge.Printf("could not open %q: %v\n", run_cfg.input, err)
 		return
 	}
 	
@@ -35,9 +52,9 @@ func execRun(logi, loge *log.Logger) {
 		return
 	}
 
-	p,promise_present := promises[run_cfg.goal]
+	p,promise_present := promises[run_cfg.promise]
 	if !promise_present {
-		loge.Printf("specified goal (%s) not found in config\n", run_cfg.goal)
+		loge.Printf("specified goal (%s) not found in config\n", run_cfg.promise)
 	}
 	success,sout,serr := p.Eval([]promise.Constant{})
 	if success {

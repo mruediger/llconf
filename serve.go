@@ -11,7 +11,7 @@ import (
 
 var serve = &Command{
 	Name: "serve",
-	Usage: "serve [--verbose]",
+	Usage: "serve [arguments...]",
 	ShortHelp: "serve",
 	LongHelp: "bla",
 	Run: runServ,
@@ -28,12 +28,12 @@ var serve_cfg struct{
 func init() {
 	serve.Flag.IntVar(&serve_cfg.interval, "interval", 300, "the minium time between promise evaluation")
 	serve.Flag.BoolVar(&serve_cfg.verbose, "verbose", false, "enable verbose output")
-	serve.Flag.StringVar(&serve_cfg.promise, "promise", "done", "the promise that should be used as root")
-	serve.Flag.StringVar(&serve_cfg.inc_dir, "incomming", "", "the folder containing updates files")
-	serve.Flag.StringVar(&serve_cfg.inp_dir, "input", "", "the folder containing input files")
+	serve.Flag.StringVar(&serve_cfg.promise, "promise", "done", "the promise that will be used as root")
+	serve.Flag.StringVar(&serve_cfg.inc_dir, "/var/llconf/incomming", "", "the folder containing updates files")
+	serve.Flag.StringVar(&serve_cfg.inp_dir, "/var/llconf/input", "", "the folder containing input files")
 }
 
-func runServ(logi, loge *log.Logger) {
+func runServ(args[] string, logi, loge *log.Logger) {
 	quit := make(chan int)
 
 	for {
