@@ -33,7 +33,7 @@ func init() {
 	serve.Flag.StringVar(&serve_cfg.inp_dir, "/var/llconf/input", "", "the folder containing input files")
 }
 
-func runServ(args[] string, logi, loge *log.Logger) {
+func runServ(args []string, logi, loge *log.Logger) {
 	quit := make(chan int)
 
 	for {
