@@ -5,6 +5,7 @@ import(
 	"fmt"
 	"os"
 	"log"
+	"log/syslog"
 )
 
 type Command struct {
@@ -23,6 +24,7 @@ var commands = []*Command{
 
 func main() {
 	flag.Usage = usage
+	var use_syslog = flag.Bool("syslog", false, "output the logs to syslog")
 	flag.Parse()
 	args := flag.Args()
 	
@@ -31,8 +33,15 @@ func main() {
 		return
 	}
 
-	logi := log.New(os.Stdout, "llconf (info)", log.LstdFlags)
-	loge := log.New(os.Stderr, "llconf (err)", log.LstdFlags | log.Lshortfile)
+	var logi, loge *log.Logger
+	
+	if *use_syslog {
+		logi,_ = syslog.NewLogger(syslog.LOG_NOTICE, log.LstdFlags)
+		loge,_ = syslog.NewLogger(syslog.LOG_ERR, log.LstdFlags)
+	} else {
+		logi = log.New(os.Stdout, "llconf (info)", log.LstdFlags)
+		loge = log.New(os.Stderr, "llconf (err)", log.LstdFlags | log.Lshortfile)
+	}
 
 	for _,cmd := range commands {
 		if cmd.Name == args[0] && cmd.Run != nil {
