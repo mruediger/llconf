@@ -81,7 +81,8 @@ func (p PipePromise) Eval(arguments []Constant, logger *Logger) bool {
 	for i, command := range(commands[:len(commands) - 1]) {
 		out, err := command.StdoutPipe()
 		if err != nil {
-			panic(err)
+			logger.Stdout.Write([]byte(err.Error()))
+			return false
 		}
 		command.Start()
 		commands[i + 1].Stdin = out
