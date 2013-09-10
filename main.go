@@ -4,25 +4,14 @@ import(
 	"flag"
 	"fmt"
 	"os"
-	"log"
-	"log/syslog"
 )
-
-type LogWriter struct {
-	log *log.Logger
-}
-
-func (l LogWriter) Write(b []byte) (n int, err error) {
-	log.Print(string(b))
-	return len(b),nil
-}
 
 type Command struct {
 	Name string
 	Usage string
 	ShortHelp string
 	LongHelp string
-	Run func(args []string, logi, loge *log.Logger)
+	Run func(args []string)
 	Flag flag.FlagSet
 }
 
@@ -33,7 +22,6 @@ var commands = []*Command{
 
 func main() {
 	flag.Usage = usage
-	var use_syslog = flag.Bool("syslog", false, "output the logs to syslog")
 	flag.Parse()
 	args := flag.Args()
 	
@@ -42,21 +30,11 @@ func main() {
 		return
 	}
 
-	var logi, loge *log.Logger
-	
-	if *use_syslog {
-		logi,_ = syslog.NewLogger(syslog.LOG_NOTICE, log.LstdFlags)
-		loge,_ = syslog.NewLogger(syslog.LOG_ERR, log.LstdFlags)
-	} else {
-		logi = log.New(os.Stdout, "llconf (info)", log.LstdFlags)
-		loge = log.New(os.Stderr, "llconf (err)", log.LstdFlags | log.Lshortfile)
-	}
-
 	for _,cmd := range commands {
 		if cmd.Name == args[0] && cmd.Run != nil {
 			cmd.Flag.Parse(args[1:])
 			cmd_args := cmd.Flag.Args()
-			cmd.Run(cmd_args, logi, loge)
+			cmd.Run(cmd_args)
 			os.Exit(0)
 		}
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"io"
 	"os"
-	"log"
 	"fmt"
 	"bufio"
 	
@@ -31,7 +30,7 @@ func init() {
 	run.Flag.StringVar(&run_cfg.promise, "promise", "done", "the promise that will be used as root")
 }
 
-func execRun(args []string, logi, loge *log.Logger) {
+func execRun(args []string) {
 	switch len(args) {
 	case 0:
 		run_cfg.input = ""
@@ -45,33 +44,33 @@ func execRun(args []string, logi, loge *log.Logger) {
 	
 	input,err := openInput(run_cfg.input)
 	if err != nil {
-		loge.Printf("could not open %q: %v\n", run_cfg.input, err)
+		fmt.Fprintf(os.Stderr, "could not open %q: %v\n", run_cfg.input, err)
 		return
 	}
 
 	globals := map[string]string{}
 	promises,err := parse.ParsePromises(input,&globals)
 	if err != nil {
-		loge.Printf("error while parsing input: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error while parsing input: %v\n", err)
 		return
 	}
 
 	p,promise_present := promises[run_cfg.promise]
 	if !promise_present {
-		loge.Printf("specified goal (%s) not found in config\n", run_cfg.promise)
+		fmt.Fprintf(os.Stderr, "specified goal (%s) not found in config\n", run_cfg.promise)
 	}
 
 	if run_cfg.dryrun {
 		return
 	}
 
-	logger := promise.Logger{LogWriter{logi}, LogWriter{loge}}
+	logger := promise.Logger{os.Stdout, os.Stderr}
 	
 	success := p.Eval([]promise.Constant{}, &logger)
 	if success {
-		logi.Println("evaluation successful\n")
+		fmt.Println("evaluation successful\n")
 	} else {
-		loge.Println("error during evaluation")		
+		fmt.Fprintln(os.Stderr, "error during evaluation")		
 	}
 }
 

@@ -7,11 +7,21 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"log/syslog"
 	
 	"github.com/mruediger/llconf/io"
 	"github.com/mruediger/llconf/parse"
 	libpromise "github.com/mruediger/llconf/promise"
 )
+
+type LogWriter struct {
+	log *log.Logger
+}
+
+func (l LogWriter) Write(b []byte) (n int, err error) {
+	l.log.Print(string(b))
+	return len(b),nil
+}
 
 var serve = &Command{
 	Name: "serve",
@@ -24,6 +34,7 @@ var serve = &Command{
 var serve_cfg struct{
 	promise string
 	verbose bool
+	use_syslog bool
 	interval int
 	inp_dir string
 	workdir string
@@ -34,9 +45,10 @@ func init() {
 	serve.Flag.BoolVar(&serve_cfg.verbose, "verbose", false, "enable verbose output")
 	serve.Flag.StringVar(&serve_cfg.promise, "promise", "done", "the promise that will be used as root")
 	serve.Flag.StringVar(&serve_cfg.inp_dir, "input-folder", "", "the folder containing input files")
+	serve.Flag.BoolVar(&serve_cfg.use_syslog, "syslog", false, "log to syslog instead of to stdout")
 }
 
-func runServ(args []string, logi, loge *log.Logger) {
+func runServ(args []string) {
 	switch len(args) {
 	case 0:
 		fmt.Fprintf(os.Stderr, "no workdir specified\n")
@@ -52,7 +64,18 @@ func runServ(args []string, logi, loge *log.Logger) {
 	if serve_cfg.inp_dir == "" {
 		serve_cfg.inp_dir = filepath.Join(serve_cfg.workdir, "input")
 	}
-		
+
+	var logi, loge *log.Logger
+
+	if serve_cfg.use_syslog {
+		fmt.Println("using syslog")
+		logi,_ = syslog.NewLogger(syslog.LOG_NOTICE, log.LstdFlags)
+		loge,_ = syslog.NewLogger(syslog.LOG_ERR, log.LstdFlags)
+	} else {
+		logi = log.New(os.Stdout, "llconf (info)", log.LstdFlags)
+		loge = log.New(os.Stderr, "llconf (err)", log.LstdFlags | log.Lshortfile)
+	}
+
 	quit := make(chan int)
 
 	var promise libpromise.Promise

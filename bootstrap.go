@@ -1,9 +1,5 @@
 package main
 
-import (
-	"log"
-)
-
 var bootstrap = &Command {
 	Name: "bootstrap",
 	Usage: "bootstrap [url]",
@@ -11,6 +7,6 @@ var bootstrap = &Command {
 }
 
 
-func runBootstrap(args []string, logi, loge *log.Logger) {
+func runBootstrap(args []string) {
 
 }
