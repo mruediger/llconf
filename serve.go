@@ -65,6 +65,12 @@ func runServ(args []string) {
 		serve_cfg.inp_dir = filepath.Join(serve_cfg.workdir, "input")
 	}
 
+	// when run as daemon, the home folder isn't set
+    home := os.Getenv("HOME")
+	if home == "" {
+		os.Setenv("HOME", serve_cfg.workdir)
+	}
+		
 	var logi, loge *log.Logger
 
 	if serve_cfg.use_syslog {
