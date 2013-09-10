@@ -10,9 +10,6 @@ type EnvGetter struct {
 
 func (envGetter EnvGetter) GetValue(arguments []Constant) string {
 	value := os.Getenv(envGetter.Name)
-	if value == "" {
-		panic("didn't find environment variable " + envGetter.Name)
-	}
 	return value
 }
 
