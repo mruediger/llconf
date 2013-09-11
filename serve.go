@@ -49,6 +49,46 @@ func init() {
 }
 
 func runServ(args []string) {
+	parseArguments(args)
+	logi,loge := setupLogging()
+	
+	quit := make(chan int)
+	
+	var promise_tree libpromise.Promise
+	
+	for {
+		go func(q chan int) {
+			time.Sleep(time.Duration(serve_cfg.interval) * time.Second)
+			q <- 0
+		}(quit)
+
+		new_promise_tree, err := updatePromise(serve_cfg.inp_dir, serve_cfg.root_promise)
+		if err == nil {
+			promise_tree = new_promise_tree
+		} else {
+			loge.Printf("error while parsing input folder: %v\n",err)
+		}
+		
+		checkPromise(promise_tree,logi,loge)
+			
+		<-quit
+	}
+}
+
+func setupLogging() (logi,loge *log.Logger){
+	if serve_cfg.use_syslog {
+		fmt.Println("using syslog")
+		logi,_ = syslog.NewLogger(syslog.LOG_NOTICE, log.LstdFlags)
+		loge,_ = syslog.NewLogger(syslog.LOG_ERR, log.LstdFlags)
+		return
+	} else {
+		logi = log.New(os.Stdout, "llconf (info)", log.LstdFlags)
+		loge = log.New(os.Stderr, "llconf (err)", log.LstdFlags | log.Lshortfile)
+		return
+	}
+}
+
+func parseArguments(args []string) {
 	switch len(args) {
 	case 0:
 		fmt.Fprintf(os.Stderr, "no workdir specified\n")
@@ -70,40 +110,8 @@ func runServ(args []string) {
 	if home == "" {
 		os.Setenv("HOME", serve_cfg.workdir)
 	}
-		
-	var logi, loge *log.Logger
-
-	if serve_cfg.use_syslog {
-		fmt.Println("using syslog")
-		logi,_ = syslog.NewLogger(syslog.LOG_NOTICE, log.LstdFlags)
-		loge,_ = syslog.NewLogger(syslog.LOG_ERR, log.LstdFlags)
-	} else {
-		logi = log.New(os.Stdout, "llconf (info)", log.LstdFlags)
-		loge = log.New(os.Stderr, "llconf (err)", log.LstdFlags | log.Lshortfile)
-	}
-
-	quit := make(chan int)
-
-	var promise_tree libpromise.Promise
-	
-	for {
-		go func(q chan int) {
-			time.Sleep(time.Duration(serve_cfg.interval) * time.Second)
-			q <- 0
-		}(quit)
-
-		new_promise_tree, err := updatePromise(serve_cfg.inp_dir, serve_cfg.root_promise)
-		if err == nil {
-			promise_tree = new_promise_tree
-		} else {
-			loge.Printf("error while parsing input folder: %v\n",err)
-		}
-		
-		checkPromise(promise_tree,logi,loge)
-			
-		<-quit
-	}
 }
+
 
 func updatePromise(folder, root string ) (libpromise.Promise, error) {
 	vars := libpromise.Variables{}
