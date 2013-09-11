@@ -41,11 +41,11 @@ var serve_cfg struct{
 }
 
 func init() {
-	serve.Flag.IntVar(&serve_cfg.interval, "interval", 300, "the minium time between promise evaluation")
+	serve.Flag.IntVar(&serve_cfg.interval, "interval", 300, "set the minium time between promise-tree evaluation")
 	serve.Flag.BoolVar(&serve_cfg.verbose, "verbose", false, "enable verbose output")
-	serve.Flag.StringVar(&serve_cfg.root_promise, "promise", "done", "the promise that will be used as root")
+	serve.Flag.StringVar(&serve_cfg.root_promise, "promise", "done", "the promise that will be used as the root of the promise tree")
 	serve.Flag.StringVar(&serve_cfg.inp_dir, "input-folder", "", "the folder containing input files")
-	serve.Flag.BoolVar(&serve_cfg.use_syslog, "syslog", false, "log to syslog instead of to stdout")
+	serve.Flag.BoolVar(&serve_cfg.use_syslog, "syslog", false, "output to syslog")
 }
 
 func runServ(args []string) {
@@ -77,7 +77,6 @@ func runServ(args []string) {
 
 func setupLogging() (logi,loge *log.Logger){
 	if serve_cfg.use_syslog {
-		fmt.Println("using syslog")
 		logi,_ = syslog.NewLogger(syslog.LOG_NOTICE, log.LstdFlags)
 		loge,_ = syslog.NewLogger(syslog.LOG_ERR, log.LstdFlags)
 		return
