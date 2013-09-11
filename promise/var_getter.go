@@ -1,8 +1,10 @@
 package promise
 
+type Variables map[string]string
+
 type VarGetter struct {
 	Name string
-	Vars *map[string]string
+	Vars *Variables
 }
 
 func (getter VarGetter) String() string {

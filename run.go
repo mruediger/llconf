@@ -48,8 +48,8 @@ func execRun(args []string) {
 		return
 	}
 
-	globals := map[string]string{}
-	promises,err := parse.ParsePromises(input,&globals)
+	vars := promise.Variables{}
+	promises,err := parse.ParsePromises(input,&vars)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error while parsing input: %v\n", err)
 		return

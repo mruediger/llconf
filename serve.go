@@ -106,14 +106,14 @@ func runServ(args []string) {
 }
 
 func updatePromise(folder, root string ) (libpromise.Promise, error) {
-	globals := map[string]string{}
-	globals["input_dir"] = serve_cfg.inp_dir
-	globals["work_dir"] = serve_cfg.workdir
+	vars := libpromise.Variables{}
+	vars["input_dir"] = serve_cfg.inp_dir
+	vars["work_dir"] = serve_cfg.workdir
 	
 	reader,err := io.NewFolderRuneReader( folder )
 	if err != nil { return nil, err}
 
-	promises, err := parse.ParsePromises( &reader, &globals )
+	promises, err := parse.ParsePromises( &reader, &vars )
 	if err != nil { return nil, err}
 
 	if promise, promise_present := promises[root]; promise_present {
