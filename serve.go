@@ -32,7 +32,7 @@ var serve = &Command{
 }
 
 var serve_cfg struct{
-	promise string
+	root_promise string
 	verbose bool
 	use_syslog bool
 	interval int
@@ -43,7 +43,7 @@ var serve_cfg struct{
 func init() {
 	serve.Flag.IntVar(&serve_cfg.interval, "interval", 300, "the minium time between promise evaluation")
 	serve.Flag.BoolVar(&serve_cfg.verbose, "verbose", false, "enable verbose output")
-	serve.Flag.StringVar(&serve_cfg.promise, "promise", "done", "the promise that will be used as root")
+	serve.Flag.StringVar(&serve_cfg.root_promise, "promise", "done", "the promise that will be used as root")
 	serve.Flag.StringVar(&serve_cfg.inp_dir, "input-folder", "", "the folder containing input files")
 	serve.Flag.BoolVar(&serve_cfg.use_syslog, "syslog", false, "log to syslog instead of to stdout")
 }
@@ -84,7 +84,7 @@ func runServ(args []string) {
 
 	quit := make(chan int)
 
-	var promise libpromise.Promise
+	var promise_tree libpromise.Promise
 	
 	for {
 		go func(q chan int) {
@@ -92,14 +92,14 @@ func runServ(args []string) {
 			q <- 0
 		}(quit)
 
-		new_promise, err := updatePromise(serve_cfg.inp_dir, serve_cfg.promise)
+		new_promise_tree, err := updatePromise(serve_cfg.inp_dir, serve_cfg.root_promise)
 		if err == nil {
-			promise = new_promise
+			promise_tree = new_promise_tree
 		} else {
 			loge.Printf("error while parsing input folder: %v\n",err)
 		}
 		
-		checkPromise(promise,logi,loge)
+		checkPromise(promise_tree,logi,loge)
 			
 		<-quit
 	}
