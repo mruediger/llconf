@@ -4,9 +4,37 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"fmt"
 )
 
+type ExecType int
+
+const (
+	ExecChange ExecType = iota
+	ExecTest
+)
+
+func (t ExecType) Name() string {
+	switch t {
+	case ExecChange:
+		return "change"
+	case ExecTest:
+		return "test"
+	default:
+		return "unknown"
+	}
+}
+
+func (t ExecType) ReportResult(logger *Logger, result bool) {
+	fmt.Println(t.Name())
+	if t == ExecChange {
+		fmt.Println("added change")
+		logger.Changes = append(logger.Changes, ExecType(3))
+	}
+}
+
 type ExecPromise struct {
+	Type ExecType
 	Arguments []Argument
 }
 
@@ -26,7 +54,6 @@ func (p ExecPromise) getCommand(arguments []Constant) *exec.Cmd {
 	args := []string{}
 	
 	for _,argument := range(largs) {
-
 		args = append(args,argument.GetValue(arguments))
 	}
 
@@ -37,7 +64,7 @@ func (p ExecPromise) getCommand(arguments []Constant) *exec.Cmd {
 
 func (p ExecPromise) Desc(arguments []Constant) string {
 	cmd := p.getCommand(arguments)
-	return "(exec in_dir(" + cmd.Dir + ") <" + cmd.Path + " [" + strings.Join(cmd.Args[1:],", ") + "] >)"
+	return "(" + p.Type.Name() + " in_dir(" + cmd.Dir + ") <" + cmd.Path + " [" + strings.Join(cmd.Args[1:],", ") + "] >)"
 }
 
 func (p ExecPromise) Eval(arguments []Constant, logger *Logger) bool {
@@ -48,12 +75,10 @@ func (p ExecPromise) Eval(arguments []Constant, logger *Logger) bool {
 	logger.Stdout.Write([]byte(strings.Join(command.Args, " ") + "\n"))
 	
 	err := command.Run()
-	
-	if (err != nil) {
-		return false
-	} else {
-		return true
-	}
+
+	result := (err == nil)
+	p.Type.ReportResult(logger, result)
+	return result;
 }
 
 type PipePromise struct {

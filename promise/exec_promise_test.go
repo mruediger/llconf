@@ -8,15 +8,15 @@ import (
 
 func TestExecPromiseDesc(t *testing.T) {
 	var promise Promise
-	promise = ExecPromise{[]Argument{Constant{"/"},
+	promise = ExecPromise{ExecTest,[]Argument{Constant{"/"},
 		Constant{"/bin/echo"},
 		Constant{"Hello"},
 		ArgGetter{0}}}
 	desc := promise.Desc([]Constant{Constant{"World"}})
-	equals(t, "(exec in_dir(/) </bin/echo [Hello, World] >)", desc)
+	equals(t, "(test in_dir(/) </bin/echo [Hello, World] >)", desc)
 
 	var sout,serr bytes.Buffer
-	logger := Logger{&sout,&serr}
+	logger := Logger{Stdout:&sout, Stderr:&serr}
 	
 	res := promise.Eval([]Constant{},&logger)
 	equals(t, true, res)
@@ -26,10 +26,10 @@ func TestExecPromiseDesc(t *testing.T) {
 }
 
 func TestPipePromiseDesc(t *testing.T) {
-	exec1 := ExecPromise{[]Argument{Constant{"/tmp"},
+	exec1 := ExecPromise{ExecTest, []Argument{Constant{"/tmp"},
 		Constant{"/bin/echo"},
 		Constant{"hello world"}}}
-	exec2 := ExecPromise{[]Argument{Constant{"/tmp"},
+	exec2 := ExecPromise{ExecChange, []Argument{Constant{"/tmp"},
 		Constant{"/usr/bin/rev"}}}
 
 	var promise Promise
@@ -38,15 +38,43 @@ func TestPipePromiseDesc(t *testing.T) {
 	promise = PipePromise{promises}
 	desc := promise.Desc([]Constant{})
 	equals(t, "(pipe "+
-		"(exec in_dir(/tmp) </bin/echo [hello world] >) "+
-		"(exec in_dir(/tmp) </usr/bin/rev [] >))", desc)
+		"(test in_dir(/tmp) </bin/echo [hello world] >) "+
+		"(change in_dir(/tmp) </usr/bin/rev [] >))", desc)
 
 	var sout,serr bytes.Buffer
-	logger := Logger{&sout,&serr}
-	
+	logger := Logger{Stdout:&sout, Stderr:&serr}
+		
 	res := promise.Eval([]Constant{}, &logger)
 	equals(t, true, res)
 	equals(t, strconv.Itoa(49), strconv.Itoa(len(sout.String())))
 	equals(t, "/bin/echo hello world | /usr/bin/rev\ndlrow olleh\n", sout.String())
 	equals(t, strconv.Itoa(0), strconv.Itoa(len(serr.String())))
+}
+
+func TestExecReporting(t *testing.T) {
+	arguments := []Argument {
+		Constant{"/"},
+		Constant{"/bin/echo"},
+		Constant{"Hello"},
+		ArgGetter{0},
+	}
+
+	var tests = []struct {
+		promise ExecPromise
+		changes int
+	}{
+		{ExecPromise{ExecChange, arguments},1},
+		{ExecPromise{ExecTest, arguments},0},
+	}
+	
+	for _,test := range tests {
+		var sout,serr bytes.Buffer
+		logger := Logger{Stdout:&sout, Stderr:&serr}
+		res := test.promise.Eval([]Constant{},&logger)
+		desc := test.promise.Desc([]Constant{Constant{"World"}})
+		equals(t, true, res)
+		equals(t, "(" + test.promise.Type.Name() + " in_dir(/) </bin/echo [Hello, World] >)", desc)
+		
+		equals(t, strconv.Itoa(test.changes), strconv.Itoa(len(logger.Changes)))
+	}
 }

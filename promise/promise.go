@@ -15,4 +15,6 @@ type Argument interface {
 type Logger struct {
 	Stdout io.Writer
 	Stderr io.Writer
-}
+	Changes []ExecType
+	Tests []ExecType
+}	

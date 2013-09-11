@@ -50,11 +50,16 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 			return nil, IllegalPromisePosition{"or"}
 		}
 		return promise.OrPromise{ values },nil
-	case "exec":
+	case "test":
 		if primary {
-			return nil, IllegalPromisePosition{"exec"}
+			return nil, IllegalPromisePosition{"test"}
 		}
-		return promise.ExecPromise{ up.Arguments },nil
+		return promise.ExecPromise{ promise.ExecTest, up.Arguments },nil
+	case "change":
+		if primary {
+			return nil, IllegalPromisePosition{"change"}
+		}
+		return promise.ExecPromise{ promise.ExecChange, up.Arguments },nil
 	case "pipe":
 		if primary {
 			return nil, IllegalPromisePosition{"pipe"}
