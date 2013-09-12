@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"fmt"
 )
 
 type ExecType int
@@ -26,9 +25,7 @@ func (t ExecType) Name() string {
 }
 
 func (t ExecType) ReportResult(logger *Logger, result bool) {
-	fmt.Println(t.Name())
 	if t == ExecChange {
-		fmt.Println("added change")
 		logger.Changes = append(logger.Changes, ExecType(3))
 	}
 }
