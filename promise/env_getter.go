@@ -8,7 +8,7 @@ type EnvGetter struct {
 	Name string
 }
 
-func (envGetter EnvGetter) GetValue(arguments []Constant) string {
+func (envGetter EnvGetter) GetValue(arguments []Constant, vars *Variables) string {
 	value := os.Getenv(envGetter.Name)
 	return value
 }

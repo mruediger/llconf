@@ -29,7 +29,7 @@ func TestReadPromise(t *testing.T) {
 			
 	}
 	for _,c := range tests {
-		promises,_ := ReadPromises( strings.NewReader(c.input ), &promise.Variables{})
+		promises,_ := ReadPromises( strings.NewReader(c.input ) )
 		got := promises[0]
 		if ! reflect.DeepEqual(got, c.want) {
 			t.Errorf("ReadPromises(%q) == %q, want %q", c.input, got, c.want)
@@ -38,10 +38,6 @@ func TestReadPromise(t *testing.T) {
 }
 
 func TestReadArguments(t *testing.T) {
-	var vars = promise.Variables{
-		"foo":  "bar",
-	}
-		
 	var tests = []struct {
 		input string
 		want UnparsedPromise
@@ -52,10 +48,10 @@ func TestReadArguments(t *testing.T) {
 		{ "(test \"bla:fa:sel\")",
 			UnparsedPromise{ "test", []UnparsedPromise{}, []promise.Argument{ promise.Constant{"bla:fa:sel"}}}},
 		{ "(test [var:foo])",
-			UnparsedPromise{ "test", []UnparsedPromise{}, []promise.Argument{ promise.VarGetter{"foo",&vars}}}},
+			UnparsedPromise{ "test", []UnparsedPromise{}, []promise.Argument{ promise.VarGetter{"foo"}}}},
 	}
 	for _,test := range tests {
-		promises,err := ReadPromises( strings.NewReader(test.input) , &vars )
+		promises,err := ReadPromises( strings.NewReader(test.input) )
 		if err != nil {
 			t.Errorf(err.Error())
 		} else {
@@ -70,7 +66,7 @@ func TestReadArguments(t *testing.T) {
 func TestReadJoiner(t *testing.T) {
 	input := "join [arg:0] [env:test]]"
 	reader :=  strings.NewReader(input ) 
-	got,err := readArgument( reader, '[', &promise.Variables{} )
+	got,err := readArgument( reader, '[' )
 
 	if err != nil {
 		panic(err)
@@ -91,7 +87,7 @@ func TestPromiseFile(t *testing.T) {
 	bufin := bufio.NewReader( file )
 
 
-	promises,_ := ReadPromises( bufin, &promise.Variables{} )
+	promises,_ := ReadPromises( bufin )
 	len_wanted := 16
 	
 	if len( promises ) != len_wanted {

@@ -19,7 +19,7 @@ func (p DummyPromise) Desc(arguments []Constant) string {
 	return "(dummy [" + p.StringValue + "]" + strings.Join(args," ") + ")"
 }
 
-func (p DummyPromise) Eval(arguments []Constant, logger *Logger) bool {
+func (p DummyPromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
 	return p.EvalValue
 }
 

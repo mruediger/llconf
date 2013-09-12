@@ -38,9 +38,9 @@ type ExecPromise struct {
 	Arguments []Argument
 }
 
-func (p ExecPromise) getCommand(arguments []Constant) *exec.Cmd {
+func (p ExecPromise) getCommand(arguments []Constant, vars *Variables) *exec.Cmd {
 	largs := p.Arguments
-	dir,largs := largs[0].GetValue(arguments), largs[1:]
+	dir,largs := largs[0].GetValue(arguments, vars), largs[1:]
 	
 	cmd := ""
 	filestat,error := os.Stat(dir)
@@ -48,13 +48,13 @@ func (p ExecPromise) getCommand(arguments []Constant) *exec.Cmd {
 		cmd = dir
 		dir = os.Getenv("PWD")
 	} else {
-		cmd, largs = largs[0].GetValue(arguments), largs[1:]
+		cmd, largs = largs[0].GetValue(arguments, vars), largs[1:]
 	}
 
 	args := []string{}
 	
 	for _,argument := range(largs) {
-		args = append(args,argument.GetValue(arguments))
+		args = append(args,argument.GetValue(arguments, vars))
 	}
 
 	command := exec.Command(cmd,args...)
@@ -63,12 +63,28 @@ func (p ExecPromise) getCommand(arguments []Constant) *exec.Cmd {
 }
 
 func (p ExecPromise) Desc(arguments []Constant) string {
-	cmd := p.getCommand(arguments)
-	return "(" + p.Type.Name() + " in_dir(" + cmd.Dir + ") <" + cmd.Path + " [" + strings.Join(cmd.Args[1:],", ") + "] >)"
+	largs := p.Arguments
+	dir,largs := largs[0].String(), largs[1:]
+	cmd := ""
+		
+	filestat,error := os.Stat(dir)
+	if error != nil || !filestat.IsDir() {
+		cmd = dir
+		dir = os.Getenv("PWD")
+	} else {
+		cmd, largs = largs[0].String(), largs[1:]
+	}
+
+	args := make([]string, len(largs))
+	for i,v := range largs {
+		args[i] = v.String()
+	}
+	
+	return "(" + p.Type.Name() + " in_dir(" + dir + ") <" + cmd + " [" + strings.Join(args,", ") + "] >)"
 }
 
-func (p ExecPromise) Eval(arguments []Constant, logger *Logger) bool {
-	command := p.getCommand(arguments)
+func (p ExecPromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
+	command := p.getCommand(arguments, vars)
 	command.Stdout = logger.Stdout
 	command.Stderr = logger.Stderr
 
@@ -93,12 +109,12 @@ func (p PipePromise) Desc(arguments []Constant) string {
 	return retval + ")"
 }
 
-func (p PipePromise) Eval(arguments []Constant, logger *Logger) bool {
+func (p PipePromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
 	
 	for _,v := range(p.Execs) {
-		cmd :=  v.getCommand(arguments)
+		cmd :=  v.getCommand(arguments, vars)
 		cstrings = append(cstrings, strings.Join(cmd.Args, " "))
 		commands = append(commands, cmd)
 	}

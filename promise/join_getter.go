@@ -8,10 +8,10 @@ type JoinArgument struct {
 	Args []Argument
 }
 
-func (this JoinArgument) GetValue(arguments []Constant) string {
+func (this JoinArgument) GetValue(arguments []Constant, vars *Variables) string {
 	result := ""
 	for _,arg := range(this.Args) {
-		result += arg.GetValue(arguments)
+		result += arg.GetValue(arguments, vars)
 	}
 	
 	return result

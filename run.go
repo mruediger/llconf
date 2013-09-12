@@ -49,7 +49,7 @@ func execRun(args []string) {
 	}
 
 	vars := promise.Variables{}
-	promises,err := parse.ParsePromises(input,&vars)
+	promises,err := parse.ParsePromises(input)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error while parsing input: %v\n", err)
 		return
@@ -64,9 +64,9 @@ func execRun(args []string) {
 		return
 	}
 
-	logger := promise.Logger{os.Stdout, os.Stderr}
+	logger := promise.Logger{Stdout:os.Stdout, Stderr: os.Stderr}
 	
-	success := p.Eval([]promise.Constant{}, &logger)
+	success := p.Eval([]promise.Constant{}, &logger, &vars)
 	if success {
 		fmt.Println("evaluation successful\n")
 	} else {

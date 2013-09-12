@@ -56,9 +56,17 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 			return nil, IllegalPromisePosition{"template"}
 		}
 		if len(up.Arguments) != 3 {
-			return nil, errors.New("need exactly 3 arguments for template promise but found " + strconv.Itoa(len(up.Arguments)))
+			return nil, errors.New("need exactly 3 arguments for (template) promise but found " + strconv.Itoa(len(up.Arguments)))
 		}
 		return promise.TemplatePromise{up.Arguments},nil
+	case "setvar":
+		if primary {
+			return nil, IllegalPromisePosition{"setvar"}
+		}
+		if len(up.Arguments) != 2 {
+			return nil, errors.New("need exactly 2 arguments for (setvar) promise but found " + strconv.Itoa(len(up.Arguments)))
+		}
+		return promise.SetvarPromise{up.Arguments[0], up.Arguments[1]},nil
 	case "test":
 		if primary {
 			return nil, IllegalPromisePosition{"test"}
@@ -99,7 +107,7 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 }
 
 
-func readArgument( in io.RuneReader, start rune, vars *promise.Variables ) (promise.Argument, error) {
+func readArgument( in io.RuneReader, start rune ) (promise.Argument, error) {
 	name := ""
 	nameDone := false
 	value := ""
@@ -118,7 +126,7 @@ func readArgument( in io.RuneReader, start rune, vars *promise.Variables ) (prom
 				return promise.Constant{name},nil
 			}
 		case (r == '[' || r == '"') && strings.TrimSpace(name) == "join":
-			return readJoin(in,r,vars)
+			return readJoin(in,r)
 		case r == ']' && start == '[':
 			name = strings.TrimSpace(name)
 			value = strings.TrimSpace(value)
@@ -133,7 +141,7 @@ func readArgument( in io.RuneReader, start rune, vars *promise.Variables ) (prom
 			case "env":
 				return promise.EnvGetter{value},nil
 			case "var":
-				return promise.VarGetter{value, vars},nil
+				return promise.VarGetter{value},nil
 			default:
 				return nil, UnknownGetterType{name}
 			}
@@ -150,7 +158,7 @@ func readArgument( in io.RuneReader, start rune, vars *promise.Variables ) (prom
 	return nil, UnexpectedEOF{}
 }
 
-func readJoin( in io.RuneReader, last rune, vars *promise.Variables ) (promise.JoinArgument, error) {
+func readJoin( in io.RuneReader, last rune ) (promise.JoinArgument, error) {
 	joiner := promise.JoinArgument{}
 
 	for {
@@ -174,7 +182,7 @@ func readJoin( in io.RuneReader, last rune, vars *promise.Variables ) (promise.J
 		
 		switch {
 		case r == '"' || r == '[':
-			argument, err := readArgument(in,r,vars)
+			argument, err := readArgument(in,r)
 			if err == nil {
 				joiner.Args = append(joiner.Args, argument)
 			} else {
@@ -187,7 +195,7 @@ func readJoin( in io.RuneReader, last rune, vars *promise.Variables ) (promise.J
 	return joiner, UnexpectedEOF{}
 }
 
-func ReadPromises( in io.RuneReader, vars *promise.Variables ) ([]UnparsedPromise,error) {
+func ReadPromises( in io.RuneReader ) ([]UnparsedPromise,error) {
 	//skip all leading stuff till the start
 	//of the first promise
 
@@ -204,7 +212,7 @@ func ReadPromises( in io.RuneReader, vars *promise.Variables ) ([]UnparsedPromis
 		}
 		
 		if r == '(' {
-			promise,err := readPromise( in, vars )
+			promise,err := readPromise( in )
 			if err == nil{
 				promises = append(promises, promise)
 			} else {
@@ -214,7 +222,7 @@ func ReadPromises( in io.RuneReader, vars *promise.Variables ) ([]UnparsedPromis
 	}
 }
 			
-func readPromise( in io.RuneReader, vars *promise.Variables ) (UnparsedPromise,error) {
+func readPromise( in io.RuneReader ) (UnparsedPromise,error) {
 	name := ""
 	promises := []UnparsedPromise{}
 	arguments := []promise.Argument{}
@@ -227,14 +235,14 @@ func readPromise( in io.RuneReader, vars *promise.Variables ) (UnparsedPromise,e
 
 		switch {
 		case r == '"' || r == '[':
-			argument, err := readArgument(in,r,vars)
+			argument, err := readArgument(in,r)
 			if err == nil {
 				arguments = append(arguments, argument)
 			} else {
 				return UnparsedPromise{},err
 			}
 		case r == '(':
-			promise,err := readPromise(in, vars)
+			promise,err := readPromise(in)
 			if err == nil {
 				promises = append(promises, promise)
 			} else {
@@ -253,10 +261,10 @@ func readPromise( in io.RuneReader, vars *promise.Variables ) (UnparsedPromise,e
 
 
 
-func ParsePromises( in io.RuneReader, vars *promise.Variables ) (map[string]promise.Promise,error) {
+func ParsePromises( in io.RuneReader ) (map[string]promise.Promise,error) {
 	promises := map[string]promise.Promise{}
 	
-	unparsed,err := ReadPromises( in, vars )
+	unparsed,err := ReadPromises( in )
 	if err != nil {
 		return promises,err
 	}

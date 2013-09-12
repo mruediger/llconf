@@ -16,10 +16,10 @@ func (t TemplatePromise) Desc(arguments []Constant) string {
 	return "hello"
 }
 
-func (t TemplatePromise) Eval(arguments []Constant, logger *Logger) bool {
-	json_input := t.Arguments[0].GetValue(arguments)
-	template_file := t.Arguments[1].GetValue(arguments)
-	output     := t.Arguments[2].GetValue(arguments)
+func (t TemplatePromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
+	json_input := t.Arguments[0].GetValue(arguments,vars)
+	template_file := t.Arguments[1].GetValue(arguments,vars)
+	output     := t.Arguments[2].GetValue(arguments,vars)
 
 	var input interface{}
 	err := json.Unmarshal([]byte(json_input), &input)

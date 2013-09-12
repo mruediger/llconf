@@ -8,7 +8,7 @@ type ArgGetter struct {
 	Position int
 }
 
-func (argGetter ArgGetter) GetValue(arguments []Constant) string {
+func (argGetter ArgGetter) GetValue(arguments []Constant, vars *Variables) string {
 	if len(arguments) <= argGetter.Position {
 		return ""
 	}

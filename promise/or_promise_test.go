@@ -18,7 +18,7 @@ func TestOrPromiseEvalAllTrue(t *testing.T) {
 		promise.Promises = append(promise.Promises, DummyPromise{ "n:" + string(1), true })
 	}
 
-	result := promise.Eval([]Constant{}, &Logger{})
+	result := promise.Eval([]Constant{}, &Logger{}, &Variables{})
 	equals(t, true, result)
 }
 
@@ -30,7 +30,7 @@ func TestOrPromiseEvalSomeFalse(t *testing.T) {
 		promise.Promises = append(promise.Promises, DummyPromise{ "n:" + string(1), true })
 	}
 
-	result := promise.Eval([]Constant{}, &Logger{})
+	result := promise.Eval([]Constant{}, &Logger{}, &Variables{})
 	equals(t, true, result)
 }
 
@@ -41,6 +41,6 @@ func TestOrPromiseEvalAllFalse(t *testing.T) {
 		promise.Promises = append(promise.Promises, DummyPromise{ "n:" + string(1), false })
 	}
 
-	result := promise.Eval([]Constant{}, &Logger{})
+	result := promise.Eval([]Constant{}, &Logger{}, &Variables{})
 	equals(t, false, result)
 }

@@ -27,7 +27,7 @@ func TestTemplatePromise(t *testing.T) {
 		Constant{output}}}
 
 	logger := Logger{Stdout:os.Stdout, Stderr: os.Stderr}
-	promise.Eval([]Constant{}, &logger)
+	promise.Eval([]Constant{}, &logger, &Variables{})
 
 
 	bytes,err := ioutil.ReadFile(output)

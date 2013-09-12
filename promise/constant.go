@@ -4,7 +4,7 @@ type Constant struct {
 	Value string
 }
 
-func (constant Constant) GetValue(arguments []Constant) string {
+func (constant Constant) GetValue(arguments []Constant, vars *Variables) string {
 	return constant.Value
 }
 

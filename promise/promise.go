@@ -4,11 +4,11 @@ import "io"
 
 type Promise interface {
 	Desc(arguments []Constant) string
-	Eval(arguments []Constant, logger *Logger) bool
+	Eval(arguments []Constant, logger *Logger, vars *Variables) bool
 }
 
 type Argument interface {
-	GetValue(arguments []Constant) string
+	GetValue(arguments []Constant, vars *Variables) string
 	String() string
 }
 

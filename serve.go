@@ -113,14 +113,10 @@ func parseArguments(args []string) {
 
 
 func updatePromise(folder, root string ) (libpromise.Promise, error) {
-	vars := libpromise.Variables{}
-	vars["input_dir"] = serve_cfg.inp_dir
-	vars["work_dir"] = serve_cfg.workdir
-	
 	reader,err := io.NewFolderRuneReader( folder )
 	if err != nil { return nil, err}
 
-	promises, err := parse.ParsePromises( &reader, &vars )
+	promises, err := parse.ParsePromises( &reader )
 	if err != nil { return nil, err}
 
 	if promise, promise_present := promises[root]; promise_present {
@@ -131,8 +127,14 @@ func updatePromise(folder, root string ) (libpromise.Promise, error) {
 }
 
 func checkPromise(p libpromise.Promise, logi, loge *log.Logger) {
-	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge } }
-	promises_fullfilled := p.Eval([]libpromise.Constant{}, &logger)
+	vars := libpromise.Variables{}
+	vars["input_dir"] = serve_cfg.inp_dir
+	vars["work_dir"] = serve_cfg.workdir
+	
+	changes := []libpromise.ExecType{}
+	tests := []libpromise.ExecType{}
+	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge }, changes, tests }
+	promises_fullfilled := p.Eval([]libpromise.Constant{}, &logger, &vars)
 
 	if promises_fullfilled {
 		logi.Printf("evaluation successful\n")
