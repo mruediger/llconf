@@ -2,6 +2,7 @@ package parse
 
 import (
 	"io"
+	"errors"
 	"strings"
 	"strconv"
 	"github.com/mruediger/llconf/promise"
@@ -50,6 +51,14 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 			return nil, IllegalPromisePosition{"or"}
 		}
 		return promise.OrPromise{ values },nil
+	case "template":
+		if primary {
+			return nil, IllegalPromisePosition{"template"}
+		}
+		if len(up.Arguments) != 3 {
+			return nil, errors.New("need exactly 3 arguments for template promise but found " + strconv.Itoa(len(up.Arguments)))
+		}
+		return promise.TemplatePromise{up.Arguments},nil
 	case "test":
 		if primary {
 			return nil, IllegalPromisePosition{"test"}
