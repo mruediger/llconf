@@ -67,6 +67,24 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 			return nil, errors.New("need exactly 2 arguments for (setvar) promise but found " + strconv.Itoa(len(up.Arguments)))
 		}
 		return promise.SetvarPromise{up.Arguments[0], up.Arguments[1]},nil
+	case "readvar":
+		if primary {
+			return nil, IllegalPromisePosition{"readvar"}
+		}
+		if len(up.Arguments) != 1 {
+			return nil, errors.New("need exactly 1 arguments for (readvar) promise but found " + strconv.Itoa(len(up.Arguments)))
+		}
+		if len(values) != 1 {
+			return nil, errors.New("only one exec or pipe promise is allowed inside (readvar) but found " + strconv.Itoa(len(values)))
+		}
+
+		switch values[0].(type) {
+		case promise.ExecPromise:
+			return promise.ReadvarPromise{up.Arguments[0], values[0]}, nil
+		case promise.PipePromise:
+			return promise.ReadvarPromise{up.Arguments[0], values[0]}, nil
+		}
+		return nil, errors.New("only exec or pipe promises are allowed inside (readvar)")
 	case "test":
 		if primary {
 			return nil, IllegalPromisePosition{"test"}
