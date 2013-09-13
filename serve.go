@@ -68,8 +68,12 @@ func runServ(args []string) {
 		} else {
 			loge.Printf("error while parsing input folder: %v\n",err)
 		}
-		
-		checkPromise(promise_tree,logi,loge)
+
+		if promise_tree != nil {
+			checkPromise(promise_tree,logi,loge)
+		} else {
+			fmt.Fprintf(os.Stderr, "could not find any valid promises\n")
+		}
 			
 		<-quit
 	}
