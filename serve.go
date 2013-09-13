@@ -137,7 +137,7 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger) {
 	
 	changes := []libpromise.ExecType{}
 	tests := []libpromise.ExecType{}
-	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge }, changes, tests }
+	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge }, LogWriter{ logi }, changes, tests }
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &logger, &vars)
 
 	if promises_fullfilled {

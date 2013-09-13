@@ -85,7 +85,7 @@ func (p ExecPromise) Eval(arguments []Constant, logger *Logger, vars *Variables)
 	command.Stdout = logger.Stdout
 	command.Stderr = logger.Stderr
 
-	logger.Stdout.Write([]byte(strings.Join(command.Args, " ") + "\n"))
+	logger.Info.Write([]byte(strings.Join(command.Args, " ") + "\n"))
 	
 	err := command.Run()
 
@@ -119,14 +119,14 @@ func (p PipePromise) Eval(arguments []Constant, logger *Logger, vars *Variables)
 	for i, command := range(commands[:len(commands) - 1]) {
 		out, err := command.StdoutPipe()
 		if err != nil {
-			logger.Stdout.Write([]byte(err.Error()))
+			logger.Stderr.Write([]byte(err.Error()))
 			return false
 		}
 		command.Start()
 		commands[i + 1].Stdin = out
 	}
 
-	logger.Stdout.Write([]byte(strings.Join(cstrings, " | ") + "\n"))
+	logger.Info.Write([]byte(strings.Join(cstrings, " | ") + "\n"))
 	
 	last_cmd := commands[len(commands) - 1]
 	last_cmd.Stdout = logger.Stdout

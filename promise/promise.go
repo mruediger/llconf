@@ -1,6 +1,9 @@
 package promise
 
-import "io"
+import (
+	"io"
+	"os"
+)
 
 type Promise interface {
 	Desc(arguments []Constant) string
@@ -15,6 +18,18 @@ type Argument interface {
 type Logger struct {
 	Stdout io.Writer
 	Stderr io.Writer
+	Info   io.Writer
 	Changes []ExecType
 	Tests []ExecType
-}	
+}
+
+func NewStdoutLogger() Logger {
+	return Logger{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Info: os.Stdout,
+		Changes: []ExecType{},
+		Tests: []ExecType{},
+	}
+}
+

@@ -14,8 +14,8 @@ func TestExecPromise(t *testing.T) {
 		ArgGetter{0}}}
 
 	var sout,serr bytes.Buffer
-	logger := Logger{Stdout:&sout, Stderr:&serr}
-	
+	logger := Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
+
 	res := promise.Eval([]Constant{},&logger, &Variables{})
 	equals(t, true, res)
 	equals(t, strconv.Itoa(24), strconv.Itoa(len(sout.String())))
@@ -36,7 +36,7 @@ func TestPipePromise(t *testing.T) {
 	promise = PipePromise{promises}
 
 	var sout,serr bytes.Buffer
-	logger := Logger{Stdout:&sout, Stderr:&serr}
+	logger := Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
 		
 	res := promise.Eval([]Constant{}, &logger, &Variables{})
 	equals(t, true, res)
@@ -63,7 +63,8 @@ func TestExecReporting(t *testing.T) {
 	
 	for _,test := range tests {
 		var sout,serr bytes.Buffer
-		logger := Logger{Stdout:&sout, Stderr:&serr}
+		logger := Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
+		
 		res := test.promise.Eval([]Constant{},&logger, &Variables{})
 		equals(t, true, res)
 		equals(t, strconv.Itoa(test.changes), strconv.Itoa(len(logger.Changes)))
