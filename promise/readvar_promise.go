@@ -2,6 +2,7 @@ package promise
 
 import (
 	"io"
+	"strings"
 )
 
 type ReadvarPromise struct {
@@ -43,8 +44,8 @@ func (p ReadvarPromise) Eval(arguments []Constant, logger *Logger, vars *Variabl
 
 	name  := p.VarName.GetValue(arguments, vars)
 	value := string(wrapped_stdout.bytes)
-	
-	(*vars)[name] = value
+		
+	(*vars)[name] = strings.TrimSpace(value)
 	
 	return result
 }
