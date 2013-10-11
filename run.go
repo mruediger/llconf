@@ -64,7 +64,7 @@ func execRun(args []string) {
 		return
 	}
 
-	logger := promise.Logger{Stdout:os.Stdout, Stderr: os.Stderr}
+	logger := promise.Logger{Stdout:os.Stdout, Stderr: os.Stderr, Info: os.Stdout}
 	
 	success := p.Eval([]promise.Constant{}, &logger, &vars)
 	if success {
