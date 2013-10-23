@@ -9,7 +9,7 @@ import (
 )
 
 
-func TestTemplatePromise(t *testing.T) {
+func runTest(template string,json string) string {
 	fho, err := ioutil.TempFile("/tmp", "template-output")
 	if err != nil { panic( err ) }
 	fho.Close()
@@ -17,13 +17,13 @@ func TestTemplatePromise(t *testing.T) {
 
 	fht, err := ioutil.TempFile("/tmp", "template-input")
 	if err != nil { panic( err ) }
-	io.WriteString(fht, "{{ range . }} hallo {{.}} \n{{end}}")
+	io.WriteString(fht, template)
 	fht.Close()
-	template := fht.Name()
-	
+	template_file := fht.Name()
+
 	promise := TemplatePromise{ []Argument{
-		Constant{`["poolnode-01.ie01.d3sv.net","poolnode-02.ie01.d3sv.net"]`},
-		Constant{template},
+		Constant{json},
+		Constant{template_file},
 		Constant{output}}}
 
 	logger := Logger{Stdout:os.Stdout, Stderr: os.Stderr}
@@ -34,10 +34,29 @@ func TestTemplatePromise(t *testing.T) {
 	if err != nil { panic(err) }
 
 	str := string(bytes)
-	if ! strings.Contains(str, "poolnode") {
-		t.Errorf("%q does not contain poolnode\n", str)
+	os.Remove(output)
+	os.Remove(template_file)
+
+	return str
+}
+
+func TestTemplatePromise(t *testing.T) {
+	template := "{{ range . }} hallo {{.}} \n{{end}}"
+	json := `["poolnode-01.ie01.d3sv.net","poolnode-02.ie01.d3sv.net"]`
+	output := runTest(template,json)
+
+	if ! strings.Contains(output, "poolnode") {
+		t.Errorf("%q does not contain poolnode\n", output)
+	}
+}
+
+func TestTemplatePromiseWithSingleVar(t *testing.T) {
+	template := "hallo {{.}}\n"
+	json := `'foobar'`
+	output := runTest(template,json)
+
+	if ! strings.Contains(output, "foobar") {
+		t.Errorf("%q does not contain foobar\n", output)
 	}
 
-	os.Remove(output)
-	os.Remove(template)
 }
