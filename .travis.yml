@@ -4,20 +4,18 @@ go:
 - 1.1
 - release
 
-
 deploy:
   provider: s3
-  access_key_id:
-    secure: |-
-      YDFZl662A/mtdlxnzoeVrIeq4MymiLjKEg9BsJM2vJbSQF3nyMJSiq6zMmhj
-      Y0OzcJIvViIehw3J8Qt3A86auvZlLovrHSWmee9g/zgeMGCnINRwBzGy292A
-      UYuVQMBfI5wXv38xSvTbegMcc+0Vlud4HoH4mmsIs9b1OcEQNMY=
   secret_access_key:
     secure: |-
-      wfClZ60kBR+hL9j+gQvBBIiKp7PDuNwSdJKvmWmNa3RzzKqHB09pNxjb+MCG
-      vZoxLtYi7dHsj0GqNZGEd23uBvFvsGdeOCaFYFyIzqmDT/rmfj/4eW8wkXF8
-      YMreHThHLPgDpRQqKbzV43mJinVigT4LMwHyXxVQPCYE6GVhBjU=
-
+      xeFg0dDteSM4+9gAdzmarhasSjRV1q4l/VQaN713b5LMoLCrCwI+OJHIbsDT
+      6lS2yKfJZgQBTfm/BNlUwjkKUgqGuHjWpQt1ECiO52LZWQXTl1ElZ0/I9ICQ
+      TwILpEg91KVyNaIcIM6xhkHunyrVKjLLwPK5ThsJJwv2VKKi+GI=
+  access_key_id:
+    secure: |-
+      uN46I+DZRtt8bebhnboH/7BosJoDGqEeiksHW+IoW7zX7YAq5MYl6XS82KDu
+      il61dDmwhdhHbIVnZKHIun+bHFWRh+9b4FtWN928n+j6WsVkDN2iSLxexDfn
+      o5JRJs+DiKYWxhyXoz2NZ7YU8xaDl2tXPR+IkVgTeNDuH0M4R8A=
   bucket: "llconf"
   on:
-    branch: master
+    branch: "master"
