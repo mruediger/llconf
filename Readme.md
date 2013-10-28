@@ -1,6 +1,8 @@
 LLConf
 ======
 
+[![Build Status](https://travis-ci.org/d3media/llconf.png?branch=master)](https://travis-ci.org/d3media/llconf)
+
 ## LLConf - Lisp Like configuration management ##
 
 LLConf is a configuration management system. It is, just like Ruby and Cheff inspired
