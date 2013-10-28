@@ -1,0 +1,23 @@
+language: go
+script: go test -v ./...
+go:
+- 1.1
+- release
+
+
+deploy:
+  provider: s3
+  access_key_id:
+    secure: |-
+      YDFZl662A/mtdlxnzoeVrIeq4MymiLjKEg9BsJM2vJbSQF3nyMJSiq6zMmhj
+      Y0OzcJIvViIehw3J8Qt3A86auvZlLovrHSWmee9g/zgeMGCnINRwBzGy292A
+      UYuVQMBfI5wXv38xSvTbegMcc+0Vlud4HoH4mmsIs9b1OcEQNMY=
+  secret_access_key:
+    secure: |-
+      wfClZ60kBR+hL9j+gQvBBIiKp7PDuNwSdJKvmWmNa3RzzKqHB09pNxjb+MCG
+      vZoxLtYi7dHsj0GqNZGEd23uBvFvsGdeOCaFYFyIzqmDT/rmfj/4eW8wkXF8
+      YMreHThHLPgDpRQqKbzV43mJinVigT4LMwHyXxVQPCYE6GVhBjU=
+
+  bucket: "llconf"
+  on:
+    branch: master
