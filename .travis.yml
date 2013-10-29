@@ -4,6 +4,10 @@ go:
 - 1.1
 - release
 
+before_deploy:
+  - "go build -o build/llconf"
+  - "cd build"
+
 deploy:
   provider: s3
   secret_access_key:
@@ -17,5 +21,6 @@ deploy:
       il61dDmwhdhHbIVnZKHIun+bHFWRh+9b4FtWN928n+j6WsVkDN2iSLxexDfn
       o5JRJs+DiKYWxhyXoz2NZ7YU8xaDl2tXPR+IkVgTeNDuH0M4R8A=
   bucket: "llconf"
+  skip_cleanup: true
   on:
     branch: "master"
