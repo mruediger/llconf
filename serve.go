@@ -70,14 +70,12 @@ func runServ(args []string) {
 		}
 
 		if promise_tree != nil {
-			checkPromise(promise_tree,logi,loge)
+			checkPromise(promise_tree,logi,loge, args)
 		} else {
 			fmt.Fprintf(os.Stderr, "could not find any valid promises\n")
 		}
 
 		<-quit
-
-		// restart with new exe if nessesary
 	}
 }
 
@@ -132,7 +130,7 @@ func updatePromise(folder, root string ) (libpromise.Promise, error) {
 	}
 }
 
-func checkPromise(p libpromise.Promise, logi, loge *log.Logger) {
+func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 	vars := libpromise.Variables{}
 	vars["input_dir"] = serve_cfg.inp_dir
 	vars["work_dir"] = serve_cfg.workdir
@@ -141,7 +139,7 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger) {
 	tests := []libpromise.ExecType{}
 	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge }, LogWriter{ logi }, changes, tests }
 
-	ctx := libpromise.Context{ logger, vars }
+	ctx := libpromise.Context{ logger, vars, args }
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
 
 	if promises_fullfilled {

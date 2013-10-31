@@ -18,6 +18,7 @@ type Argument interface {
 type Context struct {
 	Logger Logger
 	Vars   Variables
+	Args   []string
 }
 
 type Logger struct {
