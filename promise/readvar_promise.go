@@ -21,17 +21,21 @@ func (w *ReadvarWriter) Write(p []byte) (n int, err error) {
 }
 
 func (p ReadvarPromise)	Desc(arguments []Constant) string {
-	return ""
+	args := make([]string, len(arguments))
+	for i,v := range arguments {
+		args[i] = v.String()
+	}
+	return "(readvar " + strings.Join(args,", ") + ")"
 }
 
 func (p ReadvarPromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
 	bytes := []byte{}
-	
+
 	wrapped_stdout := ReadvarWriter{
 		writer: logger.Stdout,
 		bytes: bytes,
 	}
-	
+
 	wrapped_logger := &Logger{
 		Stdout: &wrapped_stdout,
 		Stderr: logger.Stderr,
@@ -44,9 +48,8 @@ func (p ReadvarPromise) Eval(arguments []Constant, logger *Logger, vars *Variabl
 
 	name  := p.VarName.GetValue(arguments, vars)
 	value := string(wrapped_stdout.bytes)
-		
+
 	(*vars)[name] = strings.TrimSpace(value)
-	
+
 	return result
 }
-
