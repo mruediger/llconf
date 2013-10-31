@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"log/syslog"
-	
+
 	"github.com/mruediger/llconf/io"
 	"github.com/mruediger/llconf/parse"
 	libpromise "github.com/mruediger/llconf/promise"
@@ -51,11 +51,11 @@ func init() {
 func runServ(args []string) {
 	parseArguments(args)
 	logi,loge := setupLogging()
-	
+
 	quit := make(chan int)
-	
+
 	var promise_tree libpromise.Promise
-	
+
 	for {
 		go func(q chan int) {
 			time.Sleep(time.Duration(serve_cfg.interval) * time.Second)
@@ -74,8 +74,10 @@ func runServ(args []string) {
 		} else {
 			fmt.Fprintf(os.Stderr, "could not find any valid promises\n")
 		}
-			
+
 		<-quit
+
+		// restart with new exe if nessesary
 	}
 }
 
@@ -134,11 +136,13 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger) {
 	vars := libpromise.Variables{}
 	vars["input_dir"] = serve_cfg.inp_dir
 	vars["work_dir"] = serve_cfg.workdir
-	
+
 	changes := []libpromise.ExecType{}
 	tests := []libpromise.ExecType{}
 	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge }, LogWriter{ logi }, changes, tests }
-	promises_fullfilled := p.Eval([]libpromise.Constant{}, &logger, &vars)
+
+	ctx := libpromise.Context{ logger, vars }
+	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
 
 	if promises_fullfilled {
 		logi.Printf("evaluation successful\n")
@@ -146,4 +150,3 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger) {
 		loge.Printf("error during evaluation\n")
 	}
 }
-

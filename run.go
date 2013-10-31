@@ -5,7 +5,7 @@ import (
 	"os"
 	"fmt"
 	"bufio"
-	
+
 	llconf_io "github.com/mruediger/llconf/io"
 	"github.com/mruediger/llconf/parse"
 	"github.com/mruediger/llconf/promise"
@@ -41,14 +41,13 @@ func execRun(args []string) {
 		fmt.Fprintf(os.Stderr, "argument count mismatch")
 		os.Exit(1)
 	}
-	
+
 	input,err := openInput(run_cfg.input)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "could not open %q: %v\n", run_cfg.input, err)
 		return
 	}
 
-	vars := promise.Variables{}
 	promises,err := parse.ParsePromises(input)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error while parsing input: %v\n", err)
@@ -64,13 +63,13 @@ func execRun(args []string) {
 		return
 	}
 
-	logger := promise.Logger{Stdout:os.Stdout, Stderr: os.Stderr, Info: os.Stdout}
-	
-	success := p.Eval([]promise.Constant{}, &logger, &vars)
+	ctx := promise.NewContext()
+	success := p.Eval([]promise.Constant{}, &ctx)
+
 	if success {
 		fmt.Println("evaluation successful\n")
 	} else {
-		fmt.Fprintln(os.Stderr, "error during evaluation")		
+		fmt.Fprintln(os.Stderr, "error during evaluation")
 	}
 }
 

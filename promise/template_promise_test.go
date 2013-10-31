@@ -26,8 +26,8 @@ func runTest(template string,json string) string {
 		Constant{template_file},
 		Constant{output}}}
 
-	logger := Logger{Stdout:os.Stdout, Stderr: os.Stderr}
-	promise.Eval([]Constant{}, &logger, &Variables{})
+	ctx := NewContext()
+	promise.Eval([]Constant{}, &ctx)
 
 
 	bytes,err := ioutil.ReadFile(output)

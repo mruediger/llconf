@@ -28,28 +28,23 @@ func (p ReadvarPromise)	Desc(arguments []Constant) string {
 	return "(readvar " + strings.Join(args,", ") + ")"
 }
 
-func (p ReadvarPromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
+func (p ReadvarPromise) Eval(arguments []Constant, ctx *Context) bool {
 	bytes := []byte{}
 
 	wrapped_stdout := ReadvarWriter{
-		writer: logger.Stdout,
+		writer: ctx.Logger.Stdout,
 		bytes: bytes,
 	}
 
-	wrapped_logger := &Logger{
-		Stdout: &wrapped_stdout,
-		Stderr: logger.Stderr,
-		Info: logger.Info,
-		Changes: logger.Changes,
-		Tests: logger.Tests,
-	}
+	wrapped_logger_ctx := *ctx
+	wrapped_logger_ctx.Logger.Stdout = &wrapped_stdout
 
-	result := p.Exec.Eval(arguments, wrapped_logger, vars)
+	result := p.Exec.Eval(arguments, &wrapped_logger_ctx)
 
-	name  := p.VarName.GetValue(arguments, vars)
+	name  := p.VarName.GetValue(arguments, &ctx.Vars)
 	value := string(wrapped_stdout.bytes)
 
-	(*vars)[name] = strings.TrimSpace(value)
+	ctx.Vars[name] = strings.TrimSpace(value)
 
 	return result
 }

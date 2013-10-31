@@ -38,7 +38,7 @@ type ExecPromise struct {
 func (p ExecPromise) getCommand(arguments []Constant, vars *Variables) *exec.Cmd {
 	largs := p.Arguments
 	dir,largs := largs[0].GetValue(arguments, vars), largs[1:]
-	
+
 	cmd := ""
 	filestat,error := os.Stat(dir)
 	if error != nil || !filestat.IsDir() {
@@ -49,7 +49,7 @@ func (p ExecPromise) getCommand(arguments []Constant, vars *Variables) *exec.Cmd
 	}
 
 	args := []string{}
-	
+
 	for _,argument := range(largs) {
 		args = append(args,argument.GetValue(arguments, vars))
 	}
@@ -63,7 +63,7 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 	largs := p.Arguments
 	dir,largs := largs[0].String(), largs[1:]
 	cmd := ""
-		
+
 	filestat,error := os.Stat(dir)
 	if error != nil || !filestat.IsDir() {
 		cmd = dir
@@ -76,21 +76,21 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 	for i,v := range largs {
 		args[i] = v.String()
 	}
-	
+
 	return "(" + p.Type.Name() + " in_dir(" + dir + ") <" + cmd + " [" + strings.Join(args,", ") + "] >)"
 }
 
-func (p ExecPromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
-	command := p.getCommand(arguments, vars)
-	command.Stdout = logger.Stdout
-	command.Stderr = logger.Stderr
+func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
+	command := p.getCommand(arguments, &ctx.Vars)
+	command.Stdout = ctx.Logger.Stdout
+	command.Stderr = ctx.Logger.Stderr
 
-	logger.Info.Write([]byte(strings.Join(command.Args, " ") + "\n"))
-	
+	ctx.Logger.Info.Write([]byte(strings.Join(command.Args, " ") + "\n"))
+
 	err := command.Run()
 
 	result := (err == nil)
-	p.Type.ReportResult(logger, result)
+	p.Type.ReportResult(&ctx.Logger, result)
 	return result;
 }
 
@@ -106,12 +106,12 @@ func (p PipePromise) Desc(arguments []Constant) string {
 	return retval + ")"
 }
 
-func (p PipePromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
+func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
-	
+
 	for _,v := range(p.Execs) {
-		cmd :=  v.getCommand(arguments, vars)
+		cmd :=  v.getCommand(arguments, &ctx.Vars)
 		cstrings = append(cstrings, strings.Join(cmd.Args, " "))
 		commands = append(commands, cmd)
 	}
@@ -119,25 +119,25 @@ func (p PipePromise) Eval(arguments []Constant, logger *Logger, vars *Variables)
 	for i, command := range(commands[:len(commands) - 1]) {
 		out, err := command.StdoutPipe()
 		if err != nil {
-			logger.Stderr.Write([]byte(err.Error()))
+			ctx.Logger.Stderr.Write([]byte(err.Error()))
 			return false
 		}
 		command.Start()
 		commands[i + 1].Stdin = out
 	}
 
-	logger.Info.Write([]byte(strings.Join(cstrings, " | ") + "\n"))
-	
+	ctx.Logger.Info.Write([]byte(strings.Join(cstrings, " | ") + "\n"))
+
 	last_cmd := commands[len(commands) - 1]
-	last_cmd.Stdout = logger.Stdout
-	last_cmd.Stderr = logger.Stderr
+	last_cmd.Stdout = ctx.Logger.Stdout
+	last_cmd.Stderr = ctx.Logger.Stderr
 
 	err := last_cmd.Run()
 
 	for _, command := range(commands[:len(commands) - 1]) {
 		command.Wait()
 	}
-	
+
 	if (err != nil) {
 		return false
 	} else {

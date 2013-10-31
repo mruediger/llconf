@@ -12,14 +12,14 @@ type DummyPromise struct {
 
 func (p DummyPromise) Desc(arguments []Constant) string {
 	var args []string
-	
+
 	for _,argument := range( arguments ) {
 		args = append(args, argument.String())
 	}
 	return "(dummy [" + p.StringValue + "]" + strings.Join(args," ") + ")"
 }
 
-func (p DummyPromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
+func (p DummyPromise) Eval(arguments []Constant, ctx *Context) bool {
 	return p.EvalValue
 }
 

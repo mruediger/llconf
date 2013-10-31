@@ -12,9 +12,9 @@ func (p AndPromise) Desc(arguments []Constant) string {
 	return "(and" + promises + ")"
 }
 
-func (p AndPromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
+func (p AndPromise) Eval(arguments []Constant, ctx *Context) bool {
 	for _,v := range(p.Promises) {
-		result := v.Eval(arguments, logger, vars)
+		result := v.Eval(arguments, ctx)
 		if result == false {
 			return false
 		}

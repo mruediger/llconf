@@ -7,12 +7,17 @@ import (
 
 type Promise interface {
 	Desc(arguments []Constant) string
-	Eval(arguments []Constant, logger *Logger, vars *Variables) bool
+	Eval(arguments []Constant, ctx *Context) bool
 }
 
 type Argument interface {
 	GetValue(arguments []Constant, vars *Variables) string
 	String() string
+}
+
+type Context struct {
+	Logger Logger
+	Vars   Variables
 }
 
 type Logger struct {
@@ -23,13 +28,15 @@ type Logger struct {
 	Tests []ExecType
 }
 
-func NewStdoutLogger() Logger {
-	return Logger{
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-		Info: os.Stdout,
-		Changes: []ExecType{},
-		Tests: []ExecType{},
+func NewContext() Context {
+	return Context{
+		Logger : Logger{
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Info: os.Stdout,
+			Changes: []ExecType{},
+			Tests: []ExecType{},
+		},
+		Vars : make(map[string]string),
 	}
 }
-

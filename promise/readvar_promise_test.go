@@ -6,27 +6,24 @@ import (
 )
 
 func TestReadvarPromise(t *testing.T) {
-
-	vars := Variables{}
-
 	arguments := []Argument{
 		Constant{"/"},
 		Constant{"/bin/echo"},
 		Constant{"Hello World"},
 	}
 
-
 	exec := ExecPromise{ExecTest, arguments}
 	promise := ReadvarPromise{Constant{"test"}, exec}
-	logger := NewStdoutLogger()
 
 	var sout bytes.Buffer
-	logger.Stdout = &sout
-	logger.Info = &sout
 
-	promise.Eval([]Constant{},&logger,&vars)
+	ctx := NewContext()
+	ctx.Logger.Stdout = &sout
+	ctx.Logger.Info = &sout
 
-	equals(t, "Hello World", vars["test"])
+	promise.Eval([]Constant{},&ctx)
+
+	equals(t, "Hello World", ctx.Vars["test"])
 	equals(t, "/bin/echo Hello World\nHello World\n", sout.String())
 
 }

@@ -16,22 +16,22 @@ func (t TemplatePromise) Desc(arguments []Constant) string {
 	return "(template)"
 }
 
-func (t TemplatePromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
+func (t TemplatePromise) Eval(arguments []Constant, ctx *Context) bool {
 	replacer := strings.NewReplacer("'", "\"")
-	json_input := replacer.Replace(t.Arguments[0].GetValue(arguments,vars))
-	template_file := t.Arguments[1].GetValue(arguments,vars)
-	output     := t.Arguments[2].GetValue(arguments,vars)
+	json_input := replacer.Replace(t.Arguments[0].GetValue(arguments, &ctx.Vars))
+	template_file := t.Arguments[1].GetValue(arguments, &ctx.Vars)
+	output     := t.Arguments[2].GetValue(arguments, &ctx.Vars)
 
 	var input interface{}
 	err := json.Unmarshal([]byte(json_input), &input)
 	if err != nil {
-		logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Stderr.Write([]byte(err.Error()))
 		return false
 	}
 
 	tmpl, err := template.ParseFiles(template_file)
 	if err != nil {
-		logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Stderr.Write([]byte(err.Error()))
 		return false
 	}
 
@@ -40,7 +40,7 @@ func (t TemplatePromise) Eval(arguments []Constant, logger *Logger, vars *Variab
 	fo,err := os.Create(output)
 	defer fo.Close()
 	if err != nil {
-		logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Stderr.Write([]byte(err.Error()))
 		return false
 	}
 
@@ -49,7 +49,7 @@ func (t TemplatePromise) Eval(arguments []Constant, logger *Logger, vars *Variab
 	err = tmpl.Execute(bfo, input)
 
 	if err != nil {
-		logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Stderr.Write([]byte(err.Error()))
 		return false
 	} else {
 		bfo.Flush()

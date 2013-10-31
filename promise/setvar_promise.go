@@ -5,14 +5,13 @@ type SetvarPromise struct {
 	VarValue Argument
 }
 
-func (p SetvarPromise) Eval(arguments []Constant, logger *Logger, vars *Variables) bool {
-	name  := p.VarName.GetValue(arguments, vars)
-	value := p.VarValue.GetValue(arguments, vars)
-	(*vars)[name] = value
+func (p SetvarPromise) Eval(arguments []Constant, ctx *Context) bool {
+	name  := p.VarName.GetValue(arguments, &ctx.Vars)
+	value := p.VarValue.GetValue(arguments, &ctx.Vars)
+	ctx.Vars[name] = value
 	return true
 }
 
 func (p SetvarPromise) Desc(arguments []Constant) string {
 	return "(setvar \"" + p.VarName.String() + "\" " + p.VarValue.String() + " )"
 }
-

@@ -7,7 +7,7 @@ func TestNamedPromiseInvocation(t *testing.T) {
 	promise.Promise = &NamedPromise{ "test", DummyPromise{ "content", true }}
 	promise.Arguments = []Argument{ Constant{"hello"} , ArgGetter{1} }
 
-	result := promise.Eval([]Constant{Constant{"world"}, Constant{"foo"}}, &Logger{}, &Variables{})
+	result := promise.Eval([]Constant{Constant{"world"}, Constant{"foo"}}, &Context{})
 	equals(t, true, result)
 }
 
@@ -17,10 +17,10 @@ func TestVarCopying(t *testing.T) {
 	promise.Promise = &NamedPromise{"test", SetvarPromise{Constant{"test"}, Constant{"blafasel"}}}
 	promise.Arguments = []Argument{}
 
-	vars := Variables{}
-	vars["test"] = "hello world"
+	ctx := NewContext()
+	ctx.Vars["test"] = "hello world"
 
-	promise.Eval([]Constant{}, &Logger{}, &vars)
+	promise.Eval([]Constant{}, &ctx)
 
-	equals(t, "hello world", vars["test"])
+	equals(t, "hello world", ctx.Vars["test"])
 }
