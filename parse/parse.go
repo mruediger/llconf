@@ -39,7 +39,7 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 			return nil, err
 		}
 	}
-	
+
 	switch up.Name {
 	case "and":
 		if primary {
@@ -67,12 +67,20 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 			return nil, errors.New("need exactly 2 arguments for (setvar) promise but found " + strconv.Itoa(len(up.Arguments)))
 		}
 		return promise.SetvarPromise{up.Arguments[0], up.Arguments[1]},nil
+	case "restart":
+		if primary {
+			return nil, IllegalPromisePosition{"restart"}
+		}
+		if len(up.Arguments) != 1 {
+			return nil, errors.New("need exactly 1 argument for (restart) promise but found " + strconv.Itoa(len(up.Arguments)))
+		}
+		return promise.RestartPromise{up.Arguments[0]}, nil
 	case "readvar":
 		if primary {
 			return nil, IllegalPromisePosition{"readvar"}
 		}
 		if len(up.Arguments) != 1 {
-			return nil, errors.New("need exactly 1 arguments for (readvar) promise but found " + strconv.Itoa(len(up.Arguments)))
+			return nil, errors.New("need exactly 1 argument for (readvar) promise but found " + strconv.Itoa(len(up.Arguments)))
 		}
 		if len(values) != 1 {
 			return nil, errors.New("only one exec or pipe promise is allowed inside (readvar) but found " + strconv.Itoa(len(values)))
@@ -104,7 +112,7 @@ func (up UnparsedPromise) parse(promises map[string]promise.Promise, primary boo
 			execs = append(execs, v.(promise.ExecPromise))
 		}
 		return promise.PipePromise{ execs }, nil
-		
+
 	default:
 		if primary {
 			if len( values ) != 1 {
@@ -129,7 +137,7 @@ func readArgument( in io.RuneReader, start rune ) (promise.Argument, error) {
 	name := ""
 	nameDone := false
 	value := ""
-	
+
 	for {
 		r,_,e := in.ReadRune()
 		if e != nil {
@@ -188,7 +196,7 @@ func readJoin( in io.RuneReader, last rune ) (promise.JoinArgument, error) {
 		// it is needed so it is possible to
 		if last == 'x' {
 			r,_,e = in.ReadRune()
-		
+
 			if e != nil {
 				return joiner,e
 			}
@@ -197,7 +205,7 @@ func readJoin( in io.RuneReader, last rune ) (promise.JoinArgument, error) {
 			last = 'x'
 		}
 
-		
+
 		switch {
 		case r == '"' || r == '[':
 			argument, err := readArgument(in,r)
@@ -218,7 +226,7 @@ func ReadPromises( in io.RuneReader ) ([]UnparsedPromise,error) {
 	//of the first promise
 
 	promises := []UnparsedPromise{}
-	
+
 	for {
 		r,_,e := in.ReadRune()
 		if e != nil {
@@ -228,7 +236,7 @@ func ReadPromises( in io.RuneReader ) ([]UnparsedPromise,error) {
 				return []UnparsedPromise{},e
 			}
 		}
-		
+
 		if r == '(' {
 			promise,err := readPromise( in )
 			if err == nil{
@@ -239,7 +247,7 @@ func ReadPromises( in io.RuneReader ) ([]UnparsedPromise,error) {
 		}
 	}
 }
-			
+
 func readPromise( in io.RuneReader ) (UnparsedPromise,error) {
 	name := ""
 	promises := []UnparsedPromise{}
@@ -275,18 +283,14 @@ func readPromise( in io.RuneReader ) (UnparsedPromise,error) {
 	return UnparsedPromise{}, UnexpectedEOF{}
 }
 
-
-
-
-
 func ParsePromises( in io.RuneReader ) (map[string]promise.Promise,error) {
 	promises := map[string]promise.Promise{}
-	
+
 	unparsed,err := ReadPromises( in )
 	if err != nil {
 		return promises,err
 	}
-	
+
 
 	for _,p := range( unparsed ) {
 		if _,present := promises[p.Name]; present {

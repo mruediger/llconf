@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"time"
 	"log"
 	"errors"
@@ -70,7 +71,7 @@ func runServ(args []string) {
 		}
 
 		if promise_tree != nil {
-			checkPromise(promise_tree,logi,loge, args)
+			checkPromise(promise_tree,logi,loge, flag.Args())
 		} else {
 			fmt.Fprintf(os.Stderr, "could not find any valid promises\n")
 		}
