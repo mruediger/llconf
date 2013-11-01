@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"log/syslog"
 
+	"bitbucket.org/kardianos/osext"
+
 	"github.com/mruediger/llconf/io"
 	"github.com/mruediger/llconf/parse"
 	libpromise "github.com/mruediger/llconf/promise"
@@ -133,8 +135,10 @@ func updatePromise(folder, root string ) (libpromise.Promise, error) {
 
 func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 	vars := libpromise.Variables{}
-	vars["input_dir"] = serve_cfg.inp_dir
-	vars["work_dir"] = serve_cfg.workdir
+	vars["input_dir"]  = serve_cfg.inp_dir
+	vars["work_dir"]   = serve_cfg.workdir
+	exe,_ := osext.Executable()
+	vars["executable"] = exe
 
 	changes := []libpromise.ExecType{}
 	tests := []libpromise.ExecType{}
