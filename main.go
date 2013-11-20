@@ -16,7 +16,7 @@ type Command struct {
 }
 
 var commands = []*Command{
-	run,
+	eval,
 	serve,
 }
 
@@ -24,7 +24,7 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 	args := flag.Args()
-	
+
 	if len(args) < 1 {
 		usage()
 		return
@@ -38,7 +38,7 @@ func main() {
 			os.Exit(0)
 		}
 	}
-		
+
 	fmt.Fprintf(os.Stderr, "Unknown subcommand %q\n", args[0])
 }
 
