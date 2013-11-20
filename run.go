@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"bufio"
 
+	"bitbucket.org/kardianos/osext"
+
 	llconf_io "github.com/mruediger/llconf/io"
 	"github.com/mruediger/llconf/parse"
 	"github.com/mruediger/llconf/promise"
+
 )
 
 var run = &Command{
