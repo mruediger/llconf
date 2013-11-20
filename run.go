@@ -64,7 +64,12 @@ func execRun(args []string) {
 	}
 
 	ctx := promise.NewContext()
+
+	exe,_ := osext.Executable()
+	ctx.Vars["executable"] = exe
+
 	success := p.Eval([]promise.Constant{}, &ctx)
+
 
 	if success {
 		fmt.Println("evaluation successful\n")
