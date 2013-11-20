@@ -55,7 +55,9 @@ func evalRun(args []string) {
 	_,promise_present := promises[run_cfg.promise]
 	if !promise_present {
 		fmt.Fprintf(os.Stderr, "specified goal (%s) not found in config\n", run_cfg.promise)
+		return
 	}
+	fmt.Println("evaluation successfull")
 }
 
 func openInput( source string ) (io.RuneReader, error) {
