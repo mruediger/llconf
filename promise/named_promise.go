@@ -9,7 +9,7 @@ func (p NamedPromise) Desc(arguments []Constant) string {
 	if p.Promise != nil {
 		return "(" + p.Name + " " + p.Promise.Desc(arguments) + ")"
 	} else {
-		return "(" + p.Name + "<missing promise> )"
+		return "(" + p.Name + " <missing promise> )"
 	}
 }
 
