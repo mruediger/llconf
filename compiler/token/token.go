@@ -10,11 +10,9 @@ type Position struct {
 }
 
 func (p Position) String() string {
-	return fmt.Sprintf("<%q, (%d, %d, %d)>",
+	return fmt.Sprintf("%q line %d",
 		p.File,
-		p.Line,
-		p.Start,
-		p.End)
+		p.Line)
 }
 
 type Type int
