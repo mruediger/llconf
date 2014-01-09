@@ -16,7 +16,6 @@ type Lexer struct {
 	start      int
 	pos        int
 	width      int
-	line       int
 	tokens     chan token.Token
 	parenDepth int
 }
@@ -30,21 +29,6 @@ const (
 
 const eof = -1
 
-func Lex(file, input string) *Lexer {
-	l := &Lexer{
-		file: file,
-		input: input,
-		tokens: make(chan token.Token),
-	}
-	go l.run()
-	return l
-}
-
-func (l *Lexer) NextToken() token.Token {
-	token := <- l.tokens
-	return token
-}
-
 func (l *Lexer) run() {
 	for l.state = lexComment; l.state != nil; {
 		l.state = l.state(l)
@@ -52,12 +36,12 @@ func (l *Lexer) run() {
 }
 
 func (l *Lexer) errorf(format string, args ...interface{}) stateFn {
-	l.tokens <- token.Token{token.Error, token.Position{l.file, l.line, l.start, l.pos}, fmt.Sprintf(format, args...)}
+	l.tokens <- token.Token{token.Error, token.Position{l.file, l.line(), l.start, l.pos}, fmt.Sprintf(format, args...)}
 	return nil
 }
 
 func (l *Lexer) emit(tt token.Type) {
-	token := token.Token{tt, token.Position{l.file, l.line, l.start, l.pos}, l.input[l.start:l.pos]}
+	token := token.Token{tt, token.Position{l.file, l.line(), l.start, l.pos}, l.input[l.start:l.pos]}
 	token.Val = strings.TrimSpace(token.Val)
 	l.tokens <- token
 	l.start = l.pos
@@ -74,14 +58,13 @@ func (l *Lexer) next() rune {
 	return r
 }
 
-func (l *Lexer) peek() rune {
-	r := l.next()
-	l.backup()
-	return r
-}
-
 func (l *Lexer) backup() {
 	l.pos -= l.width
+}
+
+// this solution is easier than handle next+backup
+func (l *Lexer) line() int {
+	return 1 + strings.Count(l.input[:l.pos], "\n")
 }
 
 func lexComment(l *Lexer) stateFn {
@@ -150,10 +133,11 @@ func lexInsidePromise(l *Lexer) stateFn {
 }
 
 func lexPromiseClosing(l *Lexer) stateFn {
-	for unicode.IsSpace(l.peek()) {
-		l.next()
-	}
 	r := l.next()
+	for unicode.IsSpace(r) {
+		r = l.next()
+	}
+
 
 	if r != ')' {
 		return l.errorf("unexpected char at end of promise: %#U",r)

@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/mruediger/llconf/compiler/token"
@@ -133,13 +132,9 @@ func runTest(test test) []testToken {
 	l := Lex(test.name, test.input)
 
 	output := []testToken{}
-	val := ""
-	typ := ""
 
 	for {
 		t:= <- l.tokens
-		val += t.Val
-		typ += strconv.Itoa(int(t.Typ))
 		output = append(output, testToken{t.Typ, t.Pos.Start, t.Val})
 		if (t.Typ == token.Error || t.Typ == token.EOF) {
 			break
