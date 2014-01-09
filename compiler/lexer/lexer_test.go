@@ -108,8 +108,25 @@ var	tests = []test{
 		{token.GetterValue, 11, "test"},
 		{token.RightGetter, 15, "]"},
 		{token.RightPromise, 16, ")"},
-		{token.EOF, 17, ""},
-	}},
+		{token.EOF, 17, ""}}},
+	{"joiner", "(test [join [var:bla] [var:blubb]])", []testToken{
+		{token.LeftPromise, 0, "("},
+		{token.PromiseName, 1, "test"},
+		{token.LeftGetter, 6, "["},
+		{token.GetterType, 7, "join"},
+		{token.LeftGetter, 12, "["},
+		{token.GetterType, 13, "var"},
+		{token.GetterSeparator, 16, ":"},
+		{token.GetterValue, 17, "bla"},
+		{token.RightGetter, 20, "]"},
+		{token.LeftGetter, 21, "["},
+		{token.GetterType, 23, "var"},
+		{token.GetterSeparator, 26, ":"},
+		{token.GetterValue, 27, "blubb"},
+		{token.RightGetter, 32, "]"},
+		{token.RightGetter, 33, "]"},
+		{token.RightPromise, 34, ")"},
+		{token.EOF, 35, ""}}},
 }
 
 
@@ -120,10 +137,9 @@ func TestLexer(t *testing.T) {
 		output := runTest(test)
 
 		if !equals(output, test.output) {
+			fmt.Println(output)
 			t.Errorf("%s: got\n%v\nexpected\n%v\n", test.name, output, test.output)
 		}
-
-		fmt.Println(output)
 	}
 }
 

@@ -18,6 +18,7 @@ type Lexer struct {
 	width      int
 	tokens     chan token.Token
 	parenDepth int
+	getterDepth int
 }
 
 type stateFn func(*Lexer) stateFn
@@ -36,12 +37,20 @@ func (l *Lexer) run() {
 }
 
 func (l *Lexer) errorf(format string, args ...interface{}) stateFn {
-	l.tokens <- token.Token{token.Error, token.Position{l.file, l.line(), l.start, l.pos}, fmt.Sprintf(format, args...)}
+	l.tokens <- token.Token{token.Error, token.Position{
+		l.file,
+		l.line(),
+		l.start,
+		l.pos}, fmt.Sprintf(format, args...)}
 	return nil
 }
 
 func (l *Lexer) emit(tt token.Type) {
-	token := token.Token{tt, token.Position{l.file, l.line(), l.start, l.pos}, l.input[l.start:l.pos]}
+	token := token.Token{tt, token.Position{
+		l.file,
+		l.line(),
+		l.start,
+		l.pos}, l.input[l.start:l.pos]}
 	token.Val = strings.TrimSpace(token.Val)
 	l.tokens <- token
 	l.start = l.pos
@@ -119,7 +128,7 @@ func lexInsidePromise(l *Lexer) stateFn {
 			return lexPromiseClosing
 		case r == '[':
 			l.backup()
-			return lexGetter
+			return lexInsideGetter
 		case r == '"':
 			l.backup()
 			return lexArgument
@@ -172,20 +181,48 @@ func lexArgument(l *Lexer) stateFn {
 	return nil;
 }
 
-func lexGetter(l *Lexer) stateFn {
+func lexInsideGetter(l *Lexer) stateFn {
+	for {
+		switch r := l.next(); {
+		case r == eof:
+			return l.errorf("unexpected eof in getter")
+		case r == '[':
+			l.backup()
+			return lexGetterOpening
+		case r == ']':
+			l.backup()
+			return lexGetterClosing
+		case unicode.IsSpace(r):
+			//ignore
+		default:
+			return l.errorf("unexpected char inside getter: %#U",r)
+		}
+	}
+	return nil
+}
+
+func lexGetterOpening(l *Lexer) stateFn {
 	l.next()
 	l.emit(token.LeftGetter)
+	l.getterDepth++
 	return lexGetterType
 }
 
 func lexGetterType(l *Lexer) stateFn {
-	for r := ' '; r != eof; r = l.next(){
-		if r == ':' {
+	for {
+		switch r := l.next(); {
+		case r == eof:
+			l.errorf("unclosed getter")
+		case r == ':':
 			l.backup()
 			l.emit(token.GetterType)
 			l.next()
 			l.emit(token.GetterSeparator)
 			return lexGetterValue
+		case r == '[':
+			l.backup()
+			l.emit(token.GetterType)
+			return lexInsideGetter
 		}
 	}
 	return l.errorf("didn't found getter separator")
@@ -196,13 +233,22 @@ func lexGetterValue(l *Lexer) stateFn {
 		if r == ']' {
 			l.backup()
 			l.emit(token.GetterValue)
-			l.next()
-			l.emit(token.RightGetter)
-			return lexInsidePromise
+			return lexGetterClosing
 		}
 	}
 
 	return l.errorf("couldn't parse getter value")
+}
+
+func lexGetterClosing(l *Lexer) stateFn {
+	l.next()
+	l.emit(token.RightGetter)
+	l.getterDepth--
+	if l.getterDepth == 0 {
+		return lexInsidePromise
+	} else {
+		return lexInsideGetter
+	}
 }
 
 func isValidPromiseNameRune(r rune) bool {
