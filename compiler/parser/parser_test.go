@@ -20,12 +20,40 @@ func TestParser(t *testing.T) {
 	}
 }
 
+func TestMultiplePromises(t *testing.T) {
+	l := lexer.Lex("main.cnf", "(hallo (test)) (welt (test))")
+	if p,err := Parse(l); err == nil {
+		fmt.Println(p)
+	} else {
+		t.Errorf("MultiplePromises: " + err.Error())
+	}
+}
+
+func TestUsePromise(t *testing.T) {
+	l := lexer.Lex("main.cnf",
+`(hallo (welt))
+ (welt (and (test "echo" "foo") (test "echo" "bar")))`)
+
+	if p,err := Parse(l); err == nil {
+		fmt.Println(p)
+	} else {
+		fmt.Println(err)
+	}
+}
+
+func TestUnknownPromise(t *testing.T) {
+	l := lexer.Lex("main.cnf", "(hallo (welt))")
+	_,err := Parse(l)
+	if err == nil {
+		t.Errorf("TestDuplicatePromise: expected exception")
+	}
+}
+
+
 func TestDuplicatePromise(t *testing.T) {
 	l := lexer.Lex("main.cnf", "(hallo) (hallo)")
 	_,err := Parse(l)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		t.Fail()
+	if err == nil {
+		t.Errorf("TestDuplicatePromise: expected exception")
 	}
 }

@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"errors"
+	"strconv"
 
 	"github.com/mruediger/llconf/promise"
 	"github.com/mruediger/llconf/compiler/lexer"
@@ -45,6 +46,11 @@ func (p *UnresolvedPromise) resolvePrimary(
 	unresolved map[string]UnresolvedPromise,
 	builtins map[string]promise.Promise) (promise.Promise,error) {
 
+	if len(p.children) != 1 {
+		return nil, errors.New("named promise needs exactly one child, found " +
+			strconv.Itoa(len(p.children)) + " " + p.pos.String())
+	}
+
 	if child,err := p.children[0].resolve(unresolved, builtins); err == nil {
 		return promise.NamedPromise{Name: p.name, Promise: child}, nil
 	} else {
@@ -56,8 +62,8 @@ func (p *UnresolvedPromise) resolve(
 	unresolved map[string]UnresolvedPromise,
 	builtins map[string]promise.Promise) (promise.Promise, error) {
 
-	if _,present := unresolved[p.name]; present {
-		return p.resolvePrimary(unresolved, builtins)
+	if u,present := unresolved[p.name]; present {
+		return u.resolvePrimary(unresolved, builtins)
 	}
 
 	children := []promise.Promise{}
@@ -181,10 +187,10 @@ func Parse(l *lexer.Lexer) (map[string]promise.Promise,error) {
 	resolved  := map[string]promise.Promise{}
 
 	for k,p := range unresolved {
-		if r,e := p.resolve(unresolved, builtins); e == nil {
+		if r,e := p.resolvePrimary(unresolved, builtins); e == nil {
 			resolved[k] = r
 		} else {
-			return nil,err
+			return nil,e
 		}
 	}
 
