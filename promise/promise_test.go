@@ -10,6 +10,10 @@ type DummyPromise struct {
 	EvalValue bool
 }
 
+func (p DummyPromise) New(children []Promise) Promise {
+	return DummyPromise{}
+}
+
 func (p DummyPromise) Desc(arguments []Constant) string {
 	var args []string
 

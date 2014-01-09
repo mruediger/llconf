@@ -15,9 +15,14 @@ type ReadvarWriter struct {
 	bytes []byte
 }
 
+
 func (w *ReadvarWriter) Write(p []byte) (n int, err error) {
 	w.bytes = append(w.bytes, p...)
 	return w.writer.Write(p)
+}
+
+func (p ReadvarPromise) New(children []Promise) Promise {
+	return ReadvarPromise{}
 }
 
 func (p ReadvarPromise)	Desc(arguments []Constant) string {

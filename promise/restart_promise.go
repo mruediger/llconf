@@ -13,6 +13,9 @@ type RestartPromise struct {
 	NewExe Argument
 }
 
+func (p RestartPromise) New(children []Promise) Promise {
+	return RestartPromise{}
+}
 
 func (p RestartPromise) Desc( arguments []Constant ) string {
 	args := make([]string, len(arguments))

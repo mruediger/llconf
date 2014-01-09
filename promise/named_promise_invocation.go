@@ -7,6 +7,10 @@ type NamedPromiseUsage struct {
 	Arguments []Argument
 }
 
+func (p NamedPromiseUsage) New(children []Promise) Promise {
+	return NamedPromise{}
+}
+
 func (p NamedPromiseUsage) Desc(arguments []Constant) string {
 	parsed_arguments := []Constant{}
 	for _,argument := range(p.Arguments) {

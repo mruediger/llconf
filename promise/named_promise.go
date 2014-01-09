@@ -5,6 +5,10 @@ type NamedPromise struct {
 	Promise Promise
 }
 
+func (p NamedPromise) New(children []Promise) Promise {
+	return NamedPromise{}
+}
+
 func (p NamedPromise) Desc(arguments []Constant) string {
 	if p.Promise != nil {
 		return "(" + p.Name + " " + p.Promise.Desc(arguments) + ")"

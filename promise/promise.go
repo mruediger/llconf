@@ -8,6 +8,7 @@ import (
 type Promise interface {
 	Desc(arguments []Constant) string
 	Eval(arguments []Constant, ctx *Context) bool
+	New(children []Promise) Promise
 }
 
 type Argument interface {

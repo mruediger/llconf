@@ -12,6 +12,10 @@ type TemplatePromise struct {
 	Arguments []Argument
 }
 
+func (t TemplatePromise) New(children []Promise) Promise {
+	return TemplatePromise{}
+}
+
 func (t TemplatePromise) Desc(arguments []Constant) string {
 	return "(template)"
 }

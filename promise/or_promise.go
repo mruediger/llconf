@@ -4,6 +4,10 @@ type OrPromise struct {
 	Promises []Promise
 }
 
+func (p OrPromise) New(children []Promise) Promise {
+	return OrPromise{children}
+}
+
 func (p OrPromise) Desc(arguments []Constant) string {
 	promises := ""
 	for _,v := range(p.Promises) {

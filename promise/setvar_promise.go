@@ -5,6 +5,10 @@ type SetvarPromise struct {
 	VarValue Argument
 }
 
+func (p SetvarPromise) New(children []Promise) Promise {
+	return SetvarPromise{}
+}
+
 func (p SetvarPromise) Eval(arguments []Constant, ctx *Context) bool {
 	name  := p.VarName.GetValue(arguments, &ctx.Vars)
 	value := p.VarValue.GetValue(arguments, &ctx.Vars)

@@ -35,6 +35,10 @@ type ExecPromise struct {
 	Arguments []Argument
 }
 
+func (p ExecPromise) New(children []Promise) Promise {
+	return ExecPromise{Type: p.Type}
+}
+
 func (p ExecPromise) getCommand(arguments []Constant, vars *Variables) *exec.Cmd {
 	largs := p.Arguments
 	dir,largs := largs[0].GetValue(arguments, vars), largs[1:]
@@ -60,6 +64,10 @@ func (p ExecPromise) getCommand(arguments []Constant, vars *Variables) *exec.Cmd
 }
 
 func (p ExecPromise) Desc(arguments []Constant) string {
+	if len(p.Arguments) == 0 {
+		return "(" + p.Type.Name() + ")"
+	}
+
 	largs := p.Arguments
 	dir,largs := largs[0].String(), largs[1:]
 	cmd := ""
@@ -96,6 +104,10 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 
 type PipePromise struct {
 	Execs []ExecPromise
+}
+
+func (p PipePromise) New(children []Promise) Promise {
+	return PipePromise{}
 }
 
 func (p PipePromise) Desc(arguments []Constant) string {

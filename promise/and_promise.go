@@ -4,6 +4,10 @@ type AndPromise struct {
 	Promises []Promise
 }
 
+func (p AndPromise) New(children []Promise) Promise {
+	return AndPromise{children}
+}
+
 func (p AndPromise) Desc(arguments []Constant) string {
 	promises := ""
 	for _,v := range(p.Promises) {
