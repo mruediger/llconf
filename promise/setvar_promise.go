@@ -5,8 +5,27 @@ type SetvarPromise struct {
 	VarValue Argument
 }
 
-func (p SetvarPromise) New(children []Promise) Promise {
-	return SetvarPromise{}
+type SetvarError string
+
+func (e SetvarError) Error() string {
+	return string(e)
+}
+
+const (
+	ArgumentCount = SetvarError("(setvar) needs 2 arguments")
+)
+
+func (p SetvarPromise) New(children []Promise, args []Argument) (Promise,error) {
+
+	if len(args) != 2 {
+		return nil, ArgumentCount
+	}
+
+	setvar := SetvarPromise{}
+	setvar.VarName = args[0]
+	setvar.VarValue = args[1]
+
+	return setvar,nil
 }
 
 func (p SetvarPromise) Eval(arguments []Constant, ctx *Context) bool {

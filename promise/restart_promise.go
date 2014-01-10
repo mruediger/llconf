@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"fmt"
+	"errors"
 	"os/exec"
 	"strings"
 	"bitbucket.org/kardianos/osext"
@@ -13,8 +14,12 @@ type RestartPromise struct {
 	NewExe Argument
 }
 
-func (p RestartPromise) New(children []Promise) Promise {
-	return RestartPromise{}
+func (p RestartPromise) New(children []Promise, args []Argument) (Promise,error) {
+	if len(args) != 1 {
+		return nil,errors.New("(restart) needs exactly 1 argument")
+	}
+
+	return RestartPromise{args[0]},nil
 }
 
 func (p RestartPromise) Desc( arguments []Constant ) string {

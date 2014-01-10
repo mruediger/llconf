@@ -2,12 +2,13 @@ package promise
 
 import (
 	"io"
+	"errors"
 	"strings"
 )
 
 type ReadvarPromise struct {
 	VarName Argument
-	Exec Promise
+	Exec ExecPromise
 }
 
 type ReadvarWriter struct {
@@ -21,8 +22,26 @@ func (w *ReadvarWriter) Write(p []byte) (n int, err error) {
 	return w.writer.Write(p)
 }
 
-func (p ReadvarPromise) New(children []Promise) Promise {
-	return ReadvarPromise{}
+func (p ReadvarPromise) New(children []Promise, args []Argument) (Promise,error) {
+	promise := ReadvarPromise{}
+
+	if len(args) == 1 {
+		promise.VarName = args[0]
+	} else {
+		return nil, errors.New("(readvar) needs exactly one variable name")
+	}
+
+	if len(children) != 1 {
+		return nil, errors.New("(readvar) needs exactly one exec promise allowed")
+	}
+
+	if exec,ok := children[0].(ExecPromise); ok {
+		promise.Exec = exec
+	} else {
+		return nil, errors.New("(readvar) did not found an exec promise")
+	}
+
+	return ReadvarPromise{},nil
 }
 
 func (p ReadvarPromise)	Desc(arguments []Constant) string {

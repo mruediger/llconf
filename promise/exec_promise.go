@@ -35,8 +35,8 @@ type ExecPromise struct {
 	Arguments []Argument
 }
 
-func (p ExecPromise) New(children []Promise) Promise {
-	return ExecPromise{Type: p.Type}
+func (p ExecPromise) New(children []Promise, args []Argument) (Promise,error) {
+	return ExecPromise{Type: p.Type, Arguments: args},nil
 }
 
 func (p ExecPromise) getCommand(arguments []Constant, vars *Variables) *exec.Cmd {
@@ -82,7 +82,7 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 
 	args := make([]string, len(largs))
 	for i,v := range largs {
-		args[i] = v.String()
+		args[i] = v.GetValue(arguments, &Variables{})
 	}
 
 	return "(" + p.Type.Name() + " in_dir(" + dir + ") <" + cmd + " [" + strings.Join(args,", ") + "] >)"
@@ -102,12 +102,32 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 	return result;
 }
 
+/////////////////////////////
+
+type OnlyExecsAllowed string
+
+func (e OnlyExecsAllowed) Error() string {
+	return "only (test) or (change) promises allowed inside (pipe) promise"
+}
+
 type PipePromise struct {
 	Execs []ExecPromise
 }
 
-func (p PipePromise) New(children []Promise) Promise {
-	return PipePromise{}
+func (p PipePromise) New(children []Promise, args []Argument) (Promise,error) {
+
+	execs := []ExecPromise{}
+
+	for _,c := range(children) {
+		switch t := c.(type) {
+		case ExecPromise:
+			execs = append(execs, t)
+		default:
+			return nil, OnlyExecsAllowed("")
+		}
+	}
+
+	return PipePromise{}, nil
 }
 
 func (p PipePromise) Desc(arguments []Constant) string {

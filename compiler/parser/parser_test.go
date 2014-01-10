@@ -3,57 +3,91 @@ package parser
 import (
 	"fmt"
 	"testing"
-	"github.com/mruediger/llconf/compiler/lexer"
+	"reflect"
+	"strings"
+
+	"github.com/mruediger/llconf/promise"
 )
 
 
 func TestParser(t *testing.T) {
-	l := lexer.Lex("main.cnf",
+	_,err := Parse([]Input{Input{"main.cnf",
 `(hallo welt
  (and (test "echo" "foo bar")
         (test "echo" "blubb")
-        (change "bla" [var:blubb])))`)
-	if p,err := Parse(l); err == nil {
-		fmt.Println(p["hallo welt"])
-	} else {
-		t.Fail()
+        (change "bla" [var:blubb])))`}})
+	if err != nil {
+		t.Errorf("TestParse: " + err.Error())
 	}
 }
 
 func TestMultiplePromises(t *testing.T) {
-	l := lexer.Lex("main.cnf", "(hallo (test)) (welt (test))")
-	if p,err := Parse(l); err == nil {
-		fmt.Println(p)
-	} else {
+	_,err := Parse([]Input{Input{"main.cnf", "(hallo (test)) (welt (test))"}})
+	if err != nil {
 		t.Errorf("MultiplePromises: " + err.Error())
 	}
 }
 
 func TestUsePromise(t *testing.T) {
-	l := lexer.Lex("main.cnf",
+	p,err := Parse([]Input{Input{"main.cnf",
 `(hallo (welt))
- (welt (and (test "echo" "foo") (test "echo" "bar")))`)
+ (welt (and (test "echo" "foo") (test "echo" "bar")))`}})
 
-	if p,err := Parse(l); err == nil {
-		fmt.Println(p)
+	if err == nil {
+
+		w1 := p["hallo"].(promise.NamedPromise).Promise.(promise.NamedPromise)
+		w2 := p["welt"].(promise.NamedPromise)
+
+		w1.Name = "w1"
+		w2.Name = "w2"
+
+		if reflect.DeepEqual(w1,w2) {
+			t.Errorf("multiple promises are the same object")
+		}
 	} else {
 		fmt.Println(err)
 	}
 }
 
+func TestUseVars(t *testing.T) {
+	p,err := Parse([]Input{Input{"main.cnf",
+`(t1 (hallo "a"))
+ (t2 (hallo "b"))
+ (hallo (test "echo" [arg:0]))`}})
+
+	if err == nil {
+		if ! strings.Contains(p["t1"].(promise.NamedPromise).String(), "constant->a") {
+			t.Errorf("TestUseVars: couldn't find value")
+		}
+		if ! strings.Contains(p["t2"].(promise.NamedPromise).String(), "constant->b") {
+			t.Errorf("TestUseVars: couldn't find value")
+		}
+	} else {
+		t.Errorf("TestUseVars: " + err.Error())
+	}
+}
+
 func TestUnknownPromise(t *testing.T) {
-	l := lexer.Lex("main.cnf", "(hallo (welt))")
-	_,err := Parse(l)
+	_,err := Parse([]Input{Input{"main.cnf", "(hallo (welt))"}})
+	if err == nil {
+		t.Errorf("TestUnknownPromise: expected exception")
+	}
+}
+
+func TestDuplicatePromise(t *testing.T) {
+	_,err := Parse([]Input{Input{"main.cnf", "(hallo) (hallo)"}})
 	if err == nil {
 		t.Errorf("TestDuplicatePromise: expected exception")
 	}
 }
 
+func TestMultipleInputs(t *testing.T) {
+	_,err := Parse([]Input{
+		Input{"main.cnf", "(hallo (welt))"},
+		Input{"welt.cnf", "(welt (test \"echo\" \"foo\"))"},
+	})
 
-func TestDuplicatePromise(t *testing.T) {
-	l := lexer.Lex("main.cnf", "(hallo) (hallo)")
-	_,err := Parse(l)
-	if err == nil {
-		t.Errorf("TestDuplicatePromise: expected exception")
+	if err != nil {
+		t.Errorf("TestMultipleInputs: " + err.Error())
 	}
 }

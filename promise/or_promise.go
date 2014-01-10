@@ -4,8 +4,8 @@ type OrPromise struct {
 	Promises []Promise
 }
 
-func (p OrPromise) New(children []Promise) Promise {
-	return OrPromise{children}
+func (p OrPromise) New(children []Promise, args []Argument) (Promise,error) {
+	return OrPromise{children},nil
 }
 
 func (p OrPromise) Desc(arguments []Constant) string {

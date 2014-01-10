@@ -19,9 +19,13 @@ var builtins = map[string]promise.Promise {
 type UnresolvedPromise struct {
 	name string
 	children []UnresolvedPromise
-	args []Arg
-	vars []Var
+	args []promise.Argument
 	pos token.Position
+}
+
+type Input struct {
+	File   string
+	String string
 }
 
 func (p UnresolvedPromise) String() string {
@@ -32,38 +36,35 @@ func (p UnresolvedPromise) String() string {
 
 	var args string
 	for _,v := range(p.args) {
-		args += "|"  + v.val
-	}
-
-	var vars string
-	for _,v := range(p.vars) {
-		vars += "[" + v.typ + ":" + v.val + "]"
+		args += "|"  + v.String()
 	}
 	return fmt.Sprintf("(%s %s %s %s)", p.name, args, p.pos ,childs);
 }
 
 func (p *UnresolvedPromise) resolvePrimary(
-	unresolved map[string]UnresolvedPromise,
-	builtins map[string]promise.Promise) (promise.Promise,error) {
+	unresolved Tree,
+	builtins map[string]promise.Promise) (promise.NamedPromise,error) {
 
 	if len(p.children) != 1 {
-		return nil, errors.New("named promise needs exactly one child, found " +
+		return promise.NamedPromise{}, errors.New("named promise needs exactly one child, found " +
 			strconv.Itoa(len(p.children)) + " " + p.pos.String())
 	}
 
 	if child,err := p.children[0].resolve(unresolved, builtins); err == nil {
 		return promise.NamedPromise{Name: p.name, Promise: child}, nil
 	} else {
-		return nil, err
+		return promise.NamedPromise{}, err
 	}
 }
 
 func (p *UnresolvedPromise) resolve(
-	unresolved map[string]UnresolvedPromise,
+	unresolved Tree,
 	builtins map[string]promise.Promise) (promise.Promise, error) {
 
 	if u,present := unresolved[p.name]; present {
-		return u.resolvePrimary(unresolved, builtins)
+		t,e := u.resolvePrimary(unresolved, builtins)
+		t.Arguments = p.args
+		return t,e
 	}
 
 	children := []promise.Promise{}
@@ -76,47 +77,60 @@ func (p *UnresolvedPromise) resolve(
 	}
 
 	if _,present := builtins[p.name]; present {
-		return builtins[p.name].New(children), nil
+		return builtins[p.name].New(children,p.args)
 	}
 
 	return nil, errors.New("couldn't find promise (" +
 		p.name + ") at " + p.pos.String())
 }
 
-type Arg struct {
-	val string
-}
-
-func (a *Arg) parse(l *lexer.Lexer) {
-	for {
-		t := l.NextToken()
-		switch {
-		case t.Typ == token.Argument:
-			a.val = t.Val
-		case t.Typ == token.RightArg:
-			return
-		}
-	}
-}
-
-type Var struct {
-	typ string
-	val string
-}
-
-func (v *Var) parse(l *lexer.Lexer) {
+func parseGetter(l *lexer.Lexer) (promise.Argument, error){
+	var typ string
+	var getter promise.Argument
 	for {
 		t := l.NextToken()
 		switch {
 		case t.Typ == token.GetterType:
-			v.typ = t.Val
+			typ = t.Val
 		case t.Typ == token.GetterValue:
-			v.val = t.Val
+			switch typ {
+			case "arg":
+				if i,e := strconv.Atoi(t.Val); e == nil {
+					getter = promise.ArgGetter{i}
+				} else {
+					return nil,e
+				}
+			case "env":
+				getter = promise.EnvGetter{}
+			case "var":
+				getter = promise.VarGetter{}
+			default:
+				return nil, errors.New("unknown getter type: " + t.Val)
+			}
 		case t.Typ == token.RightGetter:
-			return
+			return getter,nil
 		}
 	}
 }
+
+func parseArg(l *lexer.Lexer) (promise.Argument, error) {
+	var arg promise.Constant
+	for {
+		t := l.NextToken()
+		switch {
+		case t.Typ == token.LeftArg:
+			// ignore
+		case t.Typ == token.Argument:
+			arg = promise.Constant{t.Val}
+		case t.Typ == token.RightArg:
+			return arg,nil
+		default:
+			return nil, errors.New("unknown getter type: " + t.Val)
+		}
+	}
+}
+
+
 
 
 func (p *UnresolvedPromise) parse(l *lexer.Lexer) error {
@@ -135,13 +149,17 @@ func (p *UnresolvedPromise) parse(l *lexer.Lexer) error {
 		case t.Typ == token.PromiseName:
 			p.name = t.Val
 		case t.Typ == token.LeftArg:
-			a := Arg{}
-			a.parse(l)
-			p.args = append(p.args, a)
+			if a,e := parseArg(l); e == nil {
+				p.args = append(p.args, a)
+			} else {
+				return e
+			}
 		case t.Typ == token.LeftGetter:
-			v := Var{}
-			v.parse(l)
-			p.vars = append(p.vars, v)
+			if g,e := parseGetter(l); e == nil {
+				p.args = append(p.args, g)
+			} else {
+				return e
+			}
 		case t.Typ == token.RightPromise:
 			return nil
 		}
@@ -149,10 +167,9 @@ func (p *UnresolvedPromise) parse(l *lexer.Lexer) error {
 	return nil
 }
 
-func generatePromises(l *lexer.Lexer) (map[string]UnresolvedPromise, error) {
+type Tree map[string]UnresolvedPromise
 
-	promises := map[string]UnresolvedPromise{}
-
+func (tree Tree) generatePromises(l *lexer.Lexer) error {
 	for {
 		t := l.NextToken()
 		switch {
@@ -160,28 +177,33 @@ func generatePromises(l *lexer.Lexer) (map[string]UnresolvedPromise, error) {
 			p := UnresolvedPromise{}
 			p.pos = t.Pos
 			if err := p.parse(l); err != nil {
-				return nil,err
+				return err
 			}
-			if _,present := promises[p.name]; present {
-				return nil,errors.New("found duplicate promise: " +
+			if _,present := tree[p.name]; present {
+				return errors.New("found duplicate promise: " +
 					p.name + " at " + p.pos.String())
 			} else {
-				promises[p.name] = p
+				tree[p.name] = p
 			}
 		case t.Typ == token.EOF:
-			return promises,nil
+			return nil
 		case t.Typ == token.Error:
-			return nil,errors.New(t.Val)
+			return errors.New(t.Val)
 		}
 	}
-	return nil,errors.New("unknown error")
+	return errors.New("unknown error")
 }
 
-func Parse(l *lexer.Lexer) (map[string]promise.Promise,error) {
+func Parse(inputs []Input) (map[string]promise.Promise,error) {
 
-	unresolved,err := generatePromises(l)
-	if err != nil {
-		return nil, err
+	unresolved := Tree{}
+
+	for _,input := range(inputs) {
+		l := lexer.Lex(input.File, input.String)
+		err := unresolved.generatePromises(l)
+		if err != nil {
+			return nil,err
+		}
 	}
 
 	resolved  := map[string]promise.Promise{}
