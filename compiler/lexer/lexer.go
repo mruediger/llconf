@@ -135,7 +135,7 @@ func lexInsidePromise(l *Lexer) stateFn {
 		case unicode.IsSpace(r):
 			// ignore
 		default:
-			return l.errorf("unexpected char inside promise: %#U",r)
+			return l.errorf("unexpected char inside promise: %q",r)
 		}
 	}
 	return nil
@@ -149,7 +149,7 @@ func lexPromiseClosing(l *Lexer) stateFn {
 
 
 	if r != ')' {
-		return l.errorf("unexpected char at end of promise: %#U",r)
+		return l.errorf("unexpected char at end of promise: %q",r)
 	}
 
 	l.emit(token.RightPromise)
@@ -195,7 +195,7 @@ func lexInsideGetter(l *Lexer) stateFn {
 		case unicode.IsSpace(r):
 			//ignore
 		default:
-			return l.errorf("unexpected char inside getter: %#U",r)
+			return l.errorf("unexpected char inside getter: %q",r)
 		}
 	}
 	return nil
