@@ -195,7 +195,6 @@ func (tree Tree) generatePromises(l *lexer.Lexer) error {
 }
 
 func Parse(inputs []Input) (map[string]promise.Promise,error) {
-
 	unresolved := Tree{}
 
 	for _,input := range(inputs) {
