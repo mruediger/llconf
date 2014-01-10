@@ -17,8 +17,7 @@ type FolderReader struct {
 
 func Compile( folder string ) (map[string]promise.Promise,error) {
 	ch := make(chan string)
-	go listFiles(".", "cnf", ch)
-
+	go listFiles(folder, "cnf", ch)
 
 	inputs := []parser.Input{}
 

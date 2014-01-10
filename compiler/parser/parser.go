@@ -90,6 +90,8 @@ func parseGetter(l *lexer.Lexer) (promise.Argument, error){
 	for {
 		t := l.NextToken()
 		switch {
+		case t.Typ == token.Error:
+			return nil,errors.New(t.Val + " " + t.Pos.String())
 		case t.Typ == token.GetterType:
 			typ = t.Val
 		case t.Typ == token.GetterValue:
@@ -118,6 +120,8 @@ func parseArg(l *lexer.Lexer) (promise.Argument, error) {
 	for {
 		t := l.NextToken()
 		switch {
+		case t.Typ == token.Error:
+			return nil,errors.New(t.Val + " " + t.Pos.String())
 		case t.Typ == token.LeftArg:
 			// ignore
 		case t.Typ == token.Argument:
@@ -140,12 +144,15 @@ func (p *UnresolvedPromise) parse(l *lexer.Lexer) error {
 		case t.Typ == token.EOF:
 			return nil
 		case t.Typ == token.Error:
-			return errors.New(t.Val)
+			return errors.New(t.Val + " " + t.Pos.String())
 		case t.Typ == token.LeftPromise:
 			promise := UnresolvedPromise{}
 			promise.pos = t.Pos
-			promise.parse(l)
-			p.children = append(p.children, promise)
+			if err := promise.parse(l); err == nil {
+				p.children = append(p.children, promise)
+			} else {
+				return err
+			}
 		case t.Typ == token.PromiseName:
 			p.name = t.Val
 		case t.Typ == token.LeftArg:
@@ -188,7 +195,7 @@ func (tree Tree) generatePromises(l *lexer.Lexer) error {
 		case t.Typ == token.EOF:
 			return nil
 		case t.Typ == token.Error:
-			return errors.New(t.Val)
+			return errors.New(t.Val + " " + t.Pos.String())
 		}
 	}
 	return errors.New("unknown error")

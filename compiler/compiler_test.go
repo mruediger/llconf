@@ -8,7 +8,7 @@ import (
 func TestListFiles(t *testing.T) {
 	ch := make(chan string)
 
-	go listFiles(".", "go", ch)
+	go listFiles("/home/mathias/d3media/llconf/", "cnf", ch)
 
 	found := 0
 	for file := range ch {

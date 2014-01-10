@@ -12,8 +12,7 @@ import (
 
 	"bitbucket.org/kardianos/osext"
 
-	"github.com/mruediger/llconf/io"
-	"github.com/mruediger/llconf/parse"
+	"github.com/mruediger/llconf/compiler"
 	libpromise "github.com/mruediger/llconf/promise"
 )
 
@@ -120,10 +119,7 @@ func parseArguments(args []string) {
 
 
 func updatePromise(folder, root string ) (libpromise.Promise, error) {
-	reader,err := io.NewFolderRuneReader( folder )
-	if err != nil { return nil, err}
-
-	promises, err := parse.ParsePromises( &reader )
+	promises, err := compiler.Compile( folder )
 	if err != nil { return nil, err}
 
 	if promise, promise_present := promises[root]; promise_present {

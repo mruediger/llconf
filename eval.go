@@ -1,13 +1,10 @@
 package main
 
 import (
-	"io"
 	"os"
 	"fmt"
-	"bufio"
 
-	llconf_io "github.com/mruediger/llconf/io"
-	"github.com/mruediger/llconf/parse"
+	"github.com/mruediger/llconf/compiler"
 
 )
 
@@ -40,13 +37,8 @@ func evalRun(args []string) {
 		os.Exit(1)
 	}
 
-	input,err := openInput(run_cfg.input)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not open %q: %v\n", run_cfg.input, err)
-		return
-	}
-
-	promises,err := parse.ParsePromises(input)
+	promises,err := compiler.Compile(run_cfg.input)
+	fmt.Println(promises)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error while parsing input: %v\n", err)
 		return
@@ -58,14 +50,4 @@ func evalRun(args []string) {
 		return
 	}
 	fmt.Println("evaluation successfull")
-}
-
-func openInput( source string ) (io.RuneReader, error) {
-	if source == "" {
-		input := bufio.NewReader( os.Stdin )
-		return input,nil
-	} else {
-		input,err := llconf_io.NewFolderRuneReader( run_cfg.input )
-		return &input,err
-	}
 }
