@@ -11,9 +11,15 @@ import (
 )
 
 var builtins = map[string]promise.Promise {
-	"and"    : promise.AndPromise{},
-	"test"   : promise.ExecPromise{Type: promise.ExecTest},
-	"change" : promise.ExecPromise{Type: promise.ExecChange},
+	"or"       : promise.OrPromise{},
+	"and"      : promise.AndPromise{},
+	"test"     : promise.ExecPromise{Type: promise.ExecTest},
+	"change"   : promise.ExecPromise{Type: promise.ExecChange},
+	"pipe"     : promise.PipePromise{},
+	"setvar"   : promise.SetvarPromise{},
+	"readvar"  : promise.ReadvarPromise{},
+	"template" : promise.TemplatePromise{},
+	"restart"  : promise.RestartPromise{},
 }
 
 type UnresolvedPromise struct {
@@ -77,7 +83,11 @@ func (p *UnresolvedPromise) resolve(
 	}
 
 	if _,present := builtins[p.name]; present {
-		return builtins[p.name].New(children,p.args)
+		if promise,err := builtins[p.name].New(children,p.args); err == nil {
+			return promise,nil
+		} else {
+			return nil, errors.New(err.Error() + " at " + p.pos.String())
+		}
 	}
 
 	return nil, errors.New("couldn't find promise (" +
@@ -93,7 +103,11 @@ func parseGetter(l *lexer.Lexer) (promise.Argument, error){
 		case t.Typ == token.Error:
 			return nil,errors.New(t.Val + " " + t.Pos.String())
 		case t.Typ == token.GetterType:
-			typ = t.Val
+			if (t.Val == "join") {
+				return parseJoiner(l)
+			} else {
+				typ = t.Val
+			}
 		case t.Typ == token.GetterValue:
 			switch typ {
 			case "arg":
@@ -107,10 +121,37 @@ func parseGetter(l *lexer.Lexer) (promise.Argument, error){
 			case "var":
 				getter = promise.VarGetter{}
 			default:
-				return nil, errors.New("unknown getter type: " + t.Val)
+				return nil, fmt.Errorf("unknown getter type: %q", t.Val)
 			}
 		case t.Typ == token.RightGetter:
 			return getter,nil
+		}
+	}
+}
+
+func parseJoiner(l *lexer.Lexer) (promise.Argument, error) {
+
+	joiner := promise.JoinArgument{}
+
+	for {
+		t := l.NextToken()
+		switch t.Typ{
+		case token.LeftArg:
+			if arg,err := parseArg(l); err == nil {
+				joiner.Args = append(joiner.Args, arg)
+			} else {
+				return nil, err
+			}
+		case token.LeftGetter:
+			if get,err := parseGetter(l); err == nil {
+				joiner.Args = append(joiner.Args, get)
+			} else {
+				return nil, err
+			}
+		case token.RightGetter:
+			return joiner, nil
+		default:
+			return nil,fmt.Errorf("unexpected token in joiner: %q in %s",  t.Val, t.Pos.String())
 		}
 	}
 }
@@ -122,8 +163,6 @@ func parseArg(l *lexer.Lexer) (promise.Argument, error) {
 		switch {
 		case t.Typ == token.Error:
 			return nil,errors.New(t.Val + " " + t.Pos.String())
-		case t.Typ == token.LeftArg:
-			// ignore
 		case t.Typ == token.Argument:
 			arg = promise.Constant{t.Val}
 		case t.Typ == token.RightArg:
