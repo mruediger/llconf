@@ -106,7 +106,7 @@ func lexPromiseName(l *Lexer) stateFn {
 			return l.errorf("unexpected eof in promise")
 		}
 
-		if !isValidPromiseNameRune(r) {
+		if !isValidNameRune(r) {
 			l.backup()
 			l.emit(token.PromiseName)
 			return lexInsidePromise
@@ -175,7 +175,11 @@ func lexArgument(l *Lexer) stateFn {
 			l.emit(token.Argument)
 			l.next()
 			l.emit(token.RightArg)
-			return lexInsidePromise
+			if l.getterDepth == 0 {
+				return lexInsidePromise
+			} else {
+				return lexInsideGetter
+			}
 		}
 	}
 	return nil;
@@ -192,6 +196,9 @@ func lexInsideGetter(l *Lexer) stateFn {
 		case r == ']':
 			l.backup()
 			return lexGetterClosing
+		case r == '"':
+			l.backup()
+			return lexArgument
 		case unicode.IsSpace(r):
 			//ignore
 		default:
@@ -219,6 +226,10 @@ func lexGetterType(l *Lexer) stateFn {
 			l.next()
 			l.emit(token.GetterSeparator)
 			return lexGetterValue
+		case r == '"':
+			l.backup()
+			l.emit(token.GetterType)
+			return lexArgument
 		case r == '[':
 			l.backup()
 			l.emit(token.GetterType)
@@ -229,11 +240,21 @@ func lexGetterType(l *Lexer) stateFn {
 }
 
 func lexGetterValue(l *Lexer) stateFn {
-	for r := ' '; r != eof; r = l.next() {
-		if r == ']' {
+	for {
+		switch r := l.next(); {
+		case r == eof:
+			l.errorf("unclosed getter")
+		case isValidNameRune(r):
+			//continue
+		case r == ']':
 			l.backup()
 			l.emit(token.GetterValue)
 			return lexGetterClosing
+		case r == '"':
+			l.backup()
+			return lexArgument
+		default:
+			return l.errorf("unexpected char inside getter value: %q",r)
 		}
 	}
 
@@ -251,7 +272,7 @@ func lexGetterClosing(l *Lexer) stateFn {
 	}
 }
 
-func isValidPromiseNameRune(r rune) bool {
+func isValidNameRune(r rune) bool {
 	return r == '-' || r == '_' || r == ' ' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
 
