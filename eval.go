@@ -38,7 +38,6 @@ func evalRun(args []string) {
 	}
 
 	promises,err := compiler.Compile(run_cfg.input)
-	fmt.Println(promises)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error while parsing input: %v\n", err)
 		return
