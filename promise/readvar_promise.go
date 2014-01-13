@@ -8,7 +8,7 @@ import (
 
 type ReadvarPromise struct {
 	VarName Argument
-	Exec ExecPromise
+	Exec Promise
 }
 
 type ReadvarWriter struct {
@@ -35,9 +35,13 @@ func (p ReadvarPromise) New(children []Promise, args []Argument) (Promise,error)
 		return nil, errors.New("(readvar) needs exactly one exec promise allowed")
 	}
 
-	if exec,ok := children[0].(ExecPromise); ok {
+	exec := children[0]
+	switch exec.(type) {
+	case ExecPromise:
 		promise.Exec = exec
-	} else {
+	case PipePromise:
+		promise.Exec = exec
+	default:
 		return nil, errors.New("(readvar) did not found an exec promise")
 	}
 
