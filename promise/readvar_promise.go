@@ -45,7 +45,7 @@ func (p ReadvarPromise) New(children []Promise, args []Argument) (Promise,error)
 		return nil, errors.New("(readvar) did not found an exec promise")
 	}
 
-	return ReadvarPromise{},nil
+	return promise,nil
 }
 
 func (p ReadvarPromise)	Desc(arguments []Constant) string {

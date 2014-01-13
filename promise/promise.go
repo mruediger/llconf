@@ -20,6 +20,7 @@ type Context struct {
 	Logger Logger
 	Vars   Variables
 	Args   []string
+	InDir  string
 }
 
 type Logger struct {
@@ -40,5 +41,6 @@ func NewContext() Context {
 			Tests: []ExecType{},
 		},
 		Vars : make(map[string]string),
+		InDir : "",
 	}
 }

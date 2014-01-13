@@ -14,6 +14,8 @@ var builtins = map[string]promise.Promise {
 	"or"       : promise.OrPromise{},
 	"and"      : promise.AndPromise{},
 	"test"     : promise.ExecPromise{Type: promise.ExecTest},
+
+	"indir"    : promise.InDir{},
 	"change"   : promise.ExecPromise{Type: promise.ExecChange},
 	"pipe"     : promise.PipePromise{},
 	"setvar"   : promise.SetvarPromise{},
@@ -117,9 +119,9 @@ func parseGetter(l *lexer.Lexer) (promise.Argument, error){
 					return nil,e
 				}
 			case "env":
-				getter = promise.EnvGetter{}
+				getter = promise.EnvGetter{t.Val}
 			case "var":
-				getter = promise.VarGetter{}
+				getter = promise.VarGetter{t.Val}
 			default:
 				return nil, fmt.Errorf("unknown getter type: %q", t.Val)
 			}

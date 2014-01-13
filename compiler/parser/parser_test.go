@@ -67,6 +67,26 @@ func TestUseVars(t *testing.T) {
 	}
 }
 
+func TestGetter(t *testing.T) {
+	p,err := Parse([]Input{Input{"main.cnf", "(hallo (test \"echo\" [env:home] [var:test]))"}})
+	if err != nil {
+		t.Errorf("TestGetter: %s", err)
+	} else {
+		exec := p["hallo"].(promise.NamedPromise).Promise.(promise.ExecPromise)
+
+		e_name := exec.Arguments[1].(promise.EnvGetter).Name
+		v_name := exec.Arguments[2].(promise.VarGetter).Name
+
+		if (e_name != "home") {
+			t.Errorf("TestGetter: env name not found")
+		}
+		if (v_name != "test") {
+			t.Errorf("TestGetter: var name not found")
+		}
+	}
+}
+
+
 func TestUnknownPromise(t *testing.T) {
 	_,err := Parse([]Input{Input{"main.cnf", "(hallo (welt))"}})
 	if err == nil {

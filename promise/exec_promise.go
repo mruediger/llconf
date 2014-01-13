@@ -3,6 +3,7 @@ package promise
 import (
 	"os"
 	"os/exec"
+	"fmt"
 	"strings"
 )
 
@@ -30,6 +31,10 @@ func (t ExecType) ReportResult(logger *Logger, result bool) {
 	}
 }
 
+func (t ExecType) String() string {
+	return t.Name()
+}
+
 type ExecPromise struct {
 	Type ExecType
 	Arguments []Argument
@@ -39,28 +44,31 @@ func (p ExecPromise) New(children []Promise, args []Argument) (Promise,error) {
 	return ExecPromise{Type: p.Type, Arguments: args},nil
 }
 
-func (p ExecPromise) getCommand(arguments []Constant, vars *Variables) *exec.Cmd {
-	largs := p.Arguments
-	dir,largs := largs[0].GetValue(arguments, vars), largs[1:]
-
-	cmd := ""
-	filestat,error := os.Stat(dir)
-	if error != nil || !filestat.IsDir() {
-		cmd = dir
-		dir = os.Getenv("PWD")
-	} else {
-		cmd, largs = largs[0].GetValue(arguments, vars), largs[1:]
-	}
+func (p ExecPromise) getCommand(arguments []Constant, vars *Variables, dir string) (*exec.Cmd,error) {
+	cmd := p.Arguments[0].GetValue(arguments, vars)
+	largs := p.Arguments[1:]
 
 	args := []string{}
-
 	for _,argument := range(largs) {
 		args = append(args,argument.GetValue(arguments, vars))
 	}
 
 	command := exec.Command(cmd,args...)
-	command.Dir = dir
-	return command
+
+	if dir != "" {
+		fs,err := os.Stat(dir)
+		if err != nil {
+			return nil,err
+		}
+		if !fs.IsDir() {
+			return nil,fmt.Errorf("not a directory: %s", dir)
+		}
+		command.Dir = dir
+	} else {
+		command.Dir = os.Getenv("PWD")
+	}
+
+	return command,nil
 }
 
 func (p ExecPromise) Desc(arguments []Constant) string {
@@ -68,34 +76,29 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 		return "(" + p.Type.Name() + ")"
 	}
 
-	largs := p.Arguments
-	dir,largs := largs[0].String(), largs[1:]
-	cmd := ""
-
-	filestat,error := os.Stat(dir)
-	if error != nil || !filestat.IsDir() {
-		cmd = dir
-		dir = os.Getenv("PWD")
-	} else {
-		cmd, largs = largs[0].String(), largs[1:]
-	}
+	cmd := p.Arguments[0].GetValue(arguments, &Variables{})
+	largs := p.Arguments[1:]
 
 	args := make([]string, len(largs))
 	for i,v := range largs {
 		args[i] = v.GetValue(arguments, &Variables{})
 	}
 
-	return "(" + p.Type.Name() + " in_dir(" + dir + ") <" + cmd + " [" + strings.Join(args,", ") + "] >)"
+	return "(" + p.Type.Name() + " <" + cmd + " [" + strings.Join(args,", ") + "] >)"
 }
 
 func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
-	command := p.getCommand(arguments, &ctx.Vars)
+	command,err := p.getCommand(arguments, &ctx.Vars, ctx.InDir);
+	if err != nil {
+		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		return false
+	}
 	command.Stdout = ctx.Logger.Stdout
 	command.Stderr = ctx.Logger.Stderr
 
 	ctx.Logger.Info.Write([]byte(strings.Join(command.Args, " ") + "\n"))
 
-	err := command.Run()
+	err = command.Run()
 
 	result := (err == nil)
 	p.Type.ReportResult(&ctx.Logger, result)
@@ -127,7 +130,7 @@ func (p PipePromise) New(children []Promise, args []Argument) (Promise,error) {
 		}
 	}
 
-	return PipePromise{}, nil
+	return PipePromise{execs}, nil
 }
 
 func (p PipePromise) Desc(arguments []Constant) string {
@@ -143,7 +146,12 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	cstrings := []string{}
 
 	for _,v := range(p.Execs) {
-		cmd :=  v.getCommand(arguments, &ctx.Vars)
+		cmd,err := v.getCommand(arguments, &ctx.Vars, ctx.InDir)
+		if err != nil {
+			ctx.Logger.Stderr.Write([]byte(err.Error()))
+			return false
+		}
+
 		cstrings = append(cstrings, strings.Join(cmd.Args, " "))
 		commands = append(commands, cmd)
 	}

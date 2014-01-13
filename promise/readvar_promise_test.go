@@ -7,7 +7,6 @@ import (
 
 func TestReadvarPromise(t *testing.T) {
 	arguments := []Argument{
-		Constant{"/"},
 		Constant{"/bin/echo"},
 		Constant{"Hello World"},
 	}
