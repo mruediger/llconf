@@ -44,7 +44,7 @@ func (p ExecPromise) New(children []Promise, args []Argument) (Promise,error) {
 	return ExecPromise{Type: p.Type, Arguments: args},nil
 }
 
-func (p ExecPromise) getCommand(arguments []Constant, vars *Variables, dir string) (*exec.Cmd,error) {
+func (p ExecPromise) getCommand(arguments []Constant, vars *Variables, dir string, env []string) (*exec.Cmd,error) {
 	cmd := p.Arguments[0].GetValue(arguments, vars)
 	largs := p.Arguments[1:]
 
@@ -68,6 +68,12 @@ func (p ExecPromise) getCommand(arguments []Constant, vars *Variables, dir strin
 		command.Dir = os.Getenv("PWD")
 	}
 
+
+	command.Env = os.Environ()
+	for _,v := range env {
+		command.Env = append(command.Env, v)
+	}
+
 	return command,nil
 }
 
@@ -88,7 +94,7 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 }
 
 func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
-	command,err := p.getCommand(arguments, &ctx.Vars, ctx.InDir);
+	command,err := p.getCommand(arguments, &ctx.Vars, ctx.InDir, ctx.Env);
 	if err != nil {
 		ctx.Logger.Stderr.Write([]byte(err.Error()))
 		return false
@@ -146,7 +152,7 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	cstrings := []string{}
 
 	for _,v := range(p.Execs) {
-		cmd,err := v.getCommand(arguments, &ctx.Vars, ctx.InDir)
+		cmd,err := v.getCommand(arguments, &ctx.Vars, ctx.InDir, ctx.Env)
 		if err != nil {
 			ctx.Logger.Stderr.Write([]byte(err.Error()))
 			return false
