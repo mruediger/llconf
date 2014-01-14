@@ -20,6 +20,7 @@ type Context struct {
 	Logger Logger
 	Vars   Variables
 	Args   []string
+	Env    []string
 	InDir  string
 }
 
