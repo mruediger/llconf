@@ -48,33 +48,33 @@ func (p ExecPromise) New(children []Promise, args []Argument) (Promise,error) {
 	return ExecPromise{Type: p.Type, Arguments: args},nil
 }
 
-func (p ExecPromise) getCommand(arguments []Constant, vars *Variables, dir string, env []string) (*exec.Cmd,error) {
-	cmd := p.Arguments[0].GetValue(arguments, vars)
+func (p ExecPromise) getCommand(arguments []Constant, ctx *Context) (*exec.Cmd,error) {
+	cmd := p.Arguments[0].GetValue(arguments, &ctx.Vars)
 	largs := p.Arguments[1:]
 
 	args := []string{}
 	for _,argument := range(largs) {
-		args = append(args,argument.GetValue(arguments, vars))
+		args = append(args,argument.GetValue(arguments, &ctx.Vars))
 	}
 
 	command := exec.Command(cmd,args...)
 
-	if dir != "" {
-		fs,err := os.Stat(dir)
+	if ctx.InDir != "" {
+		fs,err := os.Stat(ctx.InDir)
 		if err != nil {
 			return nil,err
 		}
 		if !fs.IsDir() {
-			return nil,fmt.Errorf("not a directory: %s", dir)
+			return nil,fmt.Errorf("not a directory: %s", ctx.InDir)
 		}
-		command.Dir = dir
+		command.Dir = ctx.InDir
 	} else {
 		command.Dir = os.Getenv("PWD")
 	}
 
 
 	command.Env = os.Environ()
-	for _,v := range env {
+	for _,v := range ctx.Env {
 		command.Env = append(command.Env, v)
 	}
 
@@ -98,7 +98,7 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 }
 
 func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
-	command,err := p.getCommand(arguments, &ctx.Vars, ctx.InDir, ctx.Env);
+	command,err := p.getCommand(arguments, ctx)
 	if err != nil {
 		ctx.Logger.Stderr.Write([]byte(err.Error()))
 		return false
@@ -150,7 +150,7 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	cstrings := []string{}
 
 	for _,v := range(p.Execs) {
-		cmd,err := v.getCommand(arguments, &ctx.Vars, ctx.InDir, ctx.Env)
+		cmd,err := v.getCommand(arguments, ctx)
 		if err != nil {
 			ctx.Logger.Stderr.Write([]byte(err.Error()))
 			return false
