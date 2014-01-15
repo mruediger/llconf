@@ -3,7 +3,6 @@ package promise
 import (
 	"io"
 	"os"
-	"fmt"
 	"errors"
 	"os/exec"
 	"strings"
@@ -33,7 +32,6 @@ func (p RestartPromise) Desc( arguments []Constant ) string {
 
 func (p RestartPromise) Eval( arguments []Constant, ctx *Context) bool {
 	newexe := p.NewExe.GetValue(arguments, &ctx.Vars)
-	fmt.Println(newexe)
 	if _, err := os.Stat(newexe); err != nil {
 		ctx.Logger.Stderr.Write([]byte(err.Error()))
 		return false
