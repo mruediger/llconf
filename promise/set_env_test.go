@@ -52,6 +52,4 @@ func TestSetNewEval(t *testing.T) {
 	if sout.String() != "/bin/bash -c echo $setenv\nblafasel\n" {
 		t.Errorf("env name not present during execution")
 	}
-
-	fmt.Println(sout.String())
 }
