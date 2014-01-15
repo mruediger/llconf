@@ -137,9 +137,7 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 	vars["executable"] = exe
 	env := []string{}
 
-	changes := []libpromise.ExecType{}
-	tests := []libpromise.ExecType{}
-	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge }, LogWriter{ logi }, changes, tests }
+	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge }, LogWriter{ logi }, 0, 0 }
 
 	ctx := libpromise.Context{ logger, vars, env, args, "" }
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
