@@ -28,8 +28,8 @@ type Logger struct {
 	Stdout io.Writer
 	Stderr io.Writer
 	Info   io.Writer
-	Changes []ExecType
-	Tests []ExecType
+	Changes int
+	Tests   int
 }
 
 func NewContext() Context {
@@ -38,8 +38,8 @@ func NewContext() Context {
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
 			Info: os.Stdout,
-			Changes: []ExecType{},
-			Tests: []ExecType{},
+			Changes: 0,
+			Tests: 0,
 		},
 		Vars : make(map[string]string),
 		InDir : "",

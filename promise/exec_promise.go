@@ -27,7 +27,11 @@ func (t ExecType) Name() string {
 
 func (t ExecType) ReportResult(logger *Logger, result bool) {
 	if t == ExecChange {
-		logger.Changes = append(logger.Changes, ExecType(3))
+		logger.Changes++
+	}
+
+	if t == ExecTest {
+		logger.Tests++
 	}
 }
 
@@ -113,12 +117,6 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 
 /////////////////////////////
 
-type OnlyExecsAllowed string
-
-func (e OnlyExecsAllowed) Error() string {
-	return "only (test) or (change) promises allowed inside (pipe) promise"
-}
-
 type PipePromise struct {
 	Execs []ExecPromise
 }
@@ -132,7 +130,7 @@ func (p PipePromise) New(children []Promise, args []Argument) (Promise,error) {
 		case ExecPromise:
 			execs = append(execs, t)
 		default:
-			return nil, OnlyExecsAllowed("")
+			return nil, fmt.Errorf("only (test) or (change) promises allowed inside (pipe) promise")
 		}
 	}
 
