@@ -5,10 +5,10 @@ import (
 )
 
 func TestSetvar(t *testing.T) {
-	promise := SetvarPromise{ Constant{"test"}, ArgGetter{0} }
+	promise := SetvarPromise{ Constant("test"), ArgGetter{0} }
 
 	ctx := NewContext()
-	promise.Eval([]Constant{Constant{"foobar"}}, &ctx)
+	promise.Eval([]Constant{Constant("foobar")}, &ctx)
 
 	if v,ok := ctx.Vars["test"]; ok {
 		equals(t, "foobar",v)

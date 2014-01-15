@@ -25,7 +25,7 @@ func (p NamedPromise) String() string {
 func (p NamedPromise) Desc(arguments []Constant) string {
 	parsed_arguments := []Constant{}
 	for _,argument := range(p.Arguments) {
-		parsed_arguments = append(parsed_arguments, Constant{argument.String()})
+		parsed_arguments = append(parsed_arguments, Constant(argument.String()))
 	}
 
 	return fmt.Sprintf("(%s %s)", p.Name, p.Promise.Desc(parsed_arguments))
@@ -34,7 +34,7 @@ func (p NamedPromise) Desc(arguments []Constant) string {
 func (p NamedPromise) Eval(arguments []Constant, ctx *Context) bool {
 	parsed_arguments := []Constant{}
 	for _,argument := range(p.Arguments) {
-		parsed_arguments = append(parsed_arguments, Constant{argument.GetValue(arguments, &ctx.Vars)})
+		parsed_arguments = append(parsed_arguments, Constant(argument.GetValue(arguments, &ctx.Vars)))
 	}
 
 	copyied_vars := Variables{}

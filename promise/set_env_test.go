@@ -10,8 +10,8 @@ import (
 
 func TestSetEnvNew(t *testing.T) {
 	old := SetEnv{}
-	name := Constant{"setenv"}
-	value := Constant{"test"}
+	name := Constant("setenv")
+	value := Constant("test")
 
 	d,err := old.New([]Promise{DummyPromise{}}, []Argument{name,value})
 
@@ -26,9 +26,9 @@ func TestSetEnvNew(t *testing.T) {
 
 func TestSetNewEval(t *testing.T) {
 	arguments := []Argument{
-		Constant{"/bin/bash"},
-		Constant{"-c"},
-		Constant{"echo $setenv"},
+		Constant("/bin/bash"),
+		Constant("-c"),
+		Constant("echo $setenv"),
 	}
 	exec := ExecPromise{ExecTest, arguments}
 
@@ -39,7 +39,7 @@ func TestSetNewEval(t *testing.T) {
 
 	name  := "setenv"
 	value	:= "blafasel"
-	s := SetEnv{Constant{name}, Constant{value}, exec}
+	s := SetEnv{Constant(name), Constant(value), exec}
 
 	oldenv := fmt.Sprintf("%v",os.Environ())
 	s.Eval([]Constant{}, &ctx)

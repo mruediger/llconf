@@ -167,7 +167,7 @@ func parseArg(l *lexer.Lexer) (promise.Argument, error) {
 		case t.Typ == token.Error:
 			return nil,errors.New(t.Val + " " + t.Pos.String())
 		case t.Typ == token.Argument:
-			arg = promise.Constant{t.Val}
+			arg = promise.Constant(t.Val)
 		case t.Typ == token.RightArg:
 			return arg,nil
 		default:

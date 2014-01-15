@@ -1,13 +1,11 @@
 package promise
 
-type Constant struct {
-	Value string
-}
+type Constant string
 
 func (constant Constant) GetValue(arguments []Constant, vars *Variables) string {
-	return constant.Value
+	return string(constant)
 }
 
 func (constant Constant) String() string {
-	return "constant->" + constant.Value
+	return "constant->" + string(constant)
 }

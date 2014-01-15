@@ -9,8 +9,8 @@ import (
 func TestExecPromise(t *testing.T) {
 	var promise Promise
 	promise = ExecPromise{ExecTest,[]Argument{
-		Constant{"/bin/echo"},
-		Constant{"Hello"},
+		Constant("/bin/echo"),
+		Constant("Hello"),
 		ArgGetter{0}}}
 
 	var sout,serr bytes.Buffer
@@ -25,9 +25,9 @@ func TestExecPromise(t *testing.T) {
 }
 
 func TestPipePromise(t *testing.T) {
-	exec1 := ExecPromise{ExecTest, []Argument{Constant{"/bin/echo"},
-		Constant{"hello world"}}}
-	exec2 := ExecPromise{ExecChange, []Argument{Constant{"/usr/bin/rev"}}}
+	exec1 := ExecPromise{ExecTest, []Argument{Constant("/bin/echo"),
+		Constant("hello world")}}
+	exec2 := ExecPromise{ExecChange, []Argument{Constant("/usr/bin/rev")}}
 
 	var promise Promise
 
@@ -47,8 +47,8 @@ func TestPipePromise(t *testing.T) {
 
 func TestExecReporting(t *testing.T) {
 	arguments := []Argument {
-		Constant{"/bin/echo"},
-		Constant{"Hello"},
+		Constant("/bin/echo"),
+		Constant("Hello"),
 		ArgGetter{0},
 	}
 

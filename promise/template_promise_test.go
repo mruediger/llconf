@@ -21,7 +21,7 @@ func runTest(template string,json string) string {
 	fht.Close()
 	template_file := fht.Name()
 
-	promise := TemplatePromise{Constant{json}, Constant{template_file}, Constant{output}}
+	promise := TemplatePromise{Constant(json), Constant(template_file), Constant(output)}
 
 	ctx := NewContext()
 	promise.Eval([]Constant{}, &ctx)
