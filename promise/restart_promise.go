@@ -3,6 +3,7 @@ package promise
 import (
 	"bitbucket.org/kardianos/osext"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -43,7 +44,7 @@ func (p RestartPromise) Eval(arguments []Constant, ctx *Context) bool {
 	}
 
 	os.Rename(newexe, exe)
-	ctx.Logger.Stdout.Write([]byte("restarted llconf"))
+	ctx.Logger.Stdout.Write([]byte(fmt.Sprintf("restarted llconf: llconf %v", ctx.Args)))
 
 	if _, err := p.restartLLConf(exe, ctx.Args, ctx.Logger.Stdout, ctx.Logger.Stderr); err == nil {
 		os.Exit(0)
