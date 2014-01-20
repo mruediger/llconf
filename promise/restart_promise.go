@@ -43,7 +43,7 @@ func (p RestartPromise) Eval(arguments []Constant, ctx *Context) bool {
 	}
 
 	os.Rename(newexe, exe)
-	ctx.Logger.Stdout.Write([]byte("restartet llconf"))
+	ctx.Logger.Stdout.Write([]byte("restarted llconf"))
 
 	if _, err := p.restartLLConf(exe, ctx.Args, ctx.Logger.Stdout, ctx.Logger.Stderr); err == nil {
 		os.Exit(0)
