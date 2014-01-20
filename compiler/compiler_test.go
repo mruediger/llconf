@@ -13,7 +13,7 @@ func TestListFiles(t *testing.T) {
 	found := 0
 	for file := range ch {
 		fmt.Println(file)
-		found ++
+		found++
 	}
 
 	if found == 0 {

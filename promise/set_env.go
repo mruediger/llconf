@@ -20,18 +20,18 @@ func (s SetEnv) Eval(arguments []Constant, ctx *Context) bool {
 	value := s.value.GetValue(arguments, &ctx.Vars)
 
 	copyied_ctx := *ctx
-	copyied_ctx.Env = append(copyied_ctx.Env, fmt.Sprintf("%s=%s",name, value))
+	copyied_ctx.Env = append(copyied_ctx.Env, fmt.Sprintf("%s=%s", name, value))
 	return s.child.Eval(arguments, &copyied_ctx)
 }
 
-func (s SetEnv) New(children []Promise, args []Argument) (Promise,error) {
+func (s SetEnv) New(children []Promise, args []Argument) (Promise, error) {
 	if len(children) != 1 {
-		return nil,fmt.Errorf("(setenv) needs one promise, found %d", len(args))
+		return nil, fmt.Errorf("(setenv) needs one promise, found %d", len(args))
 	}
 
 	if len(args) != 2 {
-		return nil,fmt.Errorf("(setenv) needs two arguments, found %d", len(args))
+		return nil, fmt.Errorf("(setenv) needs two arguments, found %d", len(args))
 	}
 
-	return SetEnv{args[0], args[1], children[0]},nil
+	return SetEnv{args[0], args[1], children[0]}, nil
 }

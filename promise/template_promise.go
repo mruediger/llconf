@@ -1,26 +1,26 @@
 package promise
 
 import (
-	"os"
-	"fmt"
 	"bufio"
-	"errors"
-	"strings"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
 	"text/template"
 )
 
 type TemplatePromise struct {
-	JsonInput Argument
+	JsonInput    Argument
 	TemplateFile Argument
-	Output Argument
+	Output       Argument
 }
 
-func (t TemplatePromise) New(children []Promise, args []Argument) (Promise,error) {
+func (t TemplatePromise) New(children []Promise, args []Argument) (Promise, error) {
 	if len(args) == 3 {
-		return TemplatePromise{args[0],args[1],args[2]},nil
+		return TemplatePromise{args[0], args[1], args[2]}, nil
 	} else {
-		return nil,errors.New("(template) has not enough arguments")
+		return nil, errors.New("(template) has not enough arguments")
 	}
 }
 
@@ -35,7 +35,7 @@ func (t TemplatePromise) Eval(arguments []Constant, ctx *Context) bool {
 	replacer := strings.NewReplacer("'", "\"")
 	json_input := replacer.Replace(t.JsonInput.GetValue(arguments, &ctx.Vars))
 	template_file := t.TemplateFile.GetValue(arguments, &ctx.Vars)
-	output     := t.Output.GetValue(arguments, &ctx.Vars)
+	output := t.Output.GetValue(arguments, &ctx.Vars)
 
 	var input interface{}
 	err := json.Unmarshal([]byte(json_input), &input)
@@ -50,9 +50,7 @@ func (t TemplatePromise) Eval(arguments []Constant, ctx *Context) bool {
 		return false
 	}
 
-
-
-	fo,err := os.Create(output)
+	fo, err := os.Create(output)
 	defer fo.Close()
 	if err != nil {
 		ctx.Logger.Stderr.Write([]byte(err.Error()))

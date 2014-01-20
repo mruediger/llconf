@@ -2,17 +2,16 @@ package parser
 
 import (
 	"fmt"
-	"testing"
 	"reflect"
 	"strings"
+	"testing"
 
 	"github.com/mruediger/llconf/promise"
 )
 
-
 func TestParser(t *testing.T) {
-	_,err := Parse([]Input{Input{"main.cnf",
-`(hallo welt
+	_, err := Parse([]Input{{"main.cnf",
+		`(hallo welt
  (and (test "echo" "foo bar")
         (test "echo" "blubb")
         (change "bla" [var:blubb])))`}})
@@ -22,15 +21,15 @@ func TestParser(t *testing.T) {
 }
 
 func TestMultiplePromises(t *testing.T) {
-	_,err := Parse([]Input{Input{"main.cnf", "(hallo (test)) (welt (test))"}})
+	_, err := Parse([]Input{{"main.cnf", "(hallo (test)) (welt (test))"}})
 	if err != nil {
 		t.Errorf("MultiplePromises: " + err.Error())
 	}
 }
 
 func TestUsePromise(t *testing.T) {
-	p,err := Parse([]Input{Input{"main.cnf",
-`(hallo (welt))
+	p, err := Parse([]Input{{"main.cnf",
+		`(hallo (welt))
  (welt (and (test "echo" "foo") (test "echo" "bar")))`}})
 
 	if err == nil {
@@ -41,7 +40,7 @@ func TestUsePromise(t *testing.T) {
 		w1.Name = "w1"
 		w2.Name = "w2"
 
-		if reflect.DeepEqual(w1,w2) {
+		if reflect.DeepEqual(w1, w2) {
 			t.Errorf("multiple promises are the same object")
 		}
 	} else {
@@ -50,16 +49,16 @@ func TestUsePromise(t *testing.T) {
 }
 
 func TestUseVars(t *testing.T) {
-	p,err := Parse([]Input{Input{"main.cnf",
-`(t1 (hallo "a"))
+	p, err := Parse([]Input{{"main.cnf",
+		`(t1 (hallo "a"))
  (t2 (hallo "b"))
  (hallo (test "echo" [arg:0]))`}})
 
 	if err == nil {
-		if ! strings.Contains(p["t1"].(promise.NamedPromise).String(), "constant->a") {
+		if !strings.Contains(p["t1"].(promise.NamedPromise).String(), "constant->a") {
 			t.Errorf("TestUseVars: couldn't find value")
 		}
-		if ! strings.Contains(p["t2"].(promise.NamedPromise).String(), "constant->b") {
+		if !strings.Contains(p["t2"].(promise.NamedPromise).String(), "constant->b") {
 			t.Errorf("TestUseVars: couldn't find value")
 		}
 	} else {
@@ -68,7 +67,7 @@ func TestUseVars(t *testing.T) {
 }
 
 func TestGetter(t *testing.T) {
-	p,err := Parse([]Input{Input{"main.cnf", "(hallo (test \"echo\" [env:home] [var:test]))"}})
+	p, err := Parse([]Input{{"main.cnf", "(hallo (test \"echo\" [env:home] [var:test]))"}})
 	if err != nil {
 		t.Errorf("TestGetter: %s", err)
 	} else {
@@ -77,34 +76,33 @@ func TestGetter(t *testing.T) {
 		e_name := exec.Arguments[1].(promise.EnvGetter).Name
 		v_name := exec.Arguments[2].(promise.VarGetter).Name
 
-		if (e_name != "home") {
+		if e_name != "home" {
 			t.Errorf("TestGetter: env name not found")
 		}
-		if (v_name != "test") {
+		if v_name != "test" {
 			t.Errorf("TestGetter: var name not found")
 		}
 	}
 }
 
-
 func TestUnknownPromise(t *testing.T) {
-	_,err := Parse([]Input{Input{"main.cnf", "(hallo (welt))"}})
+	_, err := Parse([]Input{{"main.cnf", "(hallo (welt))"}})
 	if err == nil {
 		t.Errorf("TestUnknownPromise: expected exception")
 	}
 }
 
 func TestDuplicatePromise(t *testing.T) {
-	_,err := Parse([]Input{Input{"main.cnf", "(hallo) (hallo)"}})
+	_, err := Parse([]Input{{"main.cnf", "(hallo) (hallo)"}})
 	if err == nil {
 		t.Errorf("TestDuplicatePromise: expected exception")
 	}
 }
 
 func TestMultipleInputs(t *testing.T) {
-	_,err := Parse([]Input{
-		Input{"main.cnf", "(hallo (welt))"},
-		Input{"welt.cnf", "(welt (test \"echo\" \"foo\"))"},
+	_, err := Parse([]Input{
+		{"main.cnf", "(hallo (welt))"},
+		{"welt.cnf", "(welt (test \"echo\" \"foo\"))"},
 	})
 
 	if err != nil {

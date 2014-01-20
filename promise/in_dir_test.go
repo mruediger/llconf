@@ -8,7 +8,7 @@ import (
 func TestNew(t *testing.T) {
 	d := InDir{}
 
-	if p,e := d.New([]Promise{DummyPromise{}},[]Argument{Constant("test")}); e != nil {
+	if p, e := d.New([]Promise{DummyPromise{}}, []Argument{Constant("test")}); e != nil {
 		t.Errorf("indir TestNew: %s", e.Error())
 	} else {
 
@@ -24,7 +24,7 @@ func TestEval(t *testing.T) {
 	}
 	exec := ExecPromise{ExecTest, arguments}
 
-	d := InDir{Constant("/var"),exec}
+	d := InDir{Constant("/var"), exec}
 
 	var sout bytes.Buffer
 

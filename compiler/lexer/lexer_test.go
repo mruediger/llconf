@@ -8,8 +8,8 @@ import (
 )
 
 type test struct {
-	name string
-	input string
+	name   string
+	input  string
 	output []testToken
 }
 
@@ -40,11 +40,10 @@ func equals(got, expected []testToken) bool {
 		}
 	}
 
-
-	return true;
+	return true
 }
 
-var	tests = []test{
+var tests = []test{
 	{"basic", "(hello world  )", []testToken{
 		{token.LeftPromise, 0, "("},
 		{token.PromiseName, 1, "hello world"},
@@ -127,8 +126,6 @@ var	tests = []test{
 		{token.EOF, 31, ""}}},
 }
 
-
-
 func TestLexer(t *testing.T) {
 
 	for _, test := range tests {
@@ -148,9 +145,9 @@ func runTest(test test) []testToken {
 	output := []testToken{}
 
 	for {
-		t:= <- l.tokens
+		t := <-l.tokens
 		output = append(output, testToken{t.Typ, t.Pos.Start, t.Val})
-		if (t.Typ == token.Error || t.Typ == token.EOF) {
+		if t.Typ == token.Error || t.Typ == token.EOF {
 			break
 		}
 	}

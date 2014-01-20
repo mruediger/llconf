@@ -3,10 +3,10 @@ package token
 import "fmt"
 
 type Position struct {
-	File string
-	Line int
+	File  string
+	Line  int
 	Start int
-	End int
+	End   int
 }
 
 func (p Position) String() string {
@@ -34,20 +34,20 @@ const (
 	EOF
 )
 
-var tokenNames = [...]string {
-	Error:        "Error",
-	LeftPromise:  "LeftPromise",
-	RightPromise: "RightPromise",
-	PromiseName:  "PromiseName",
-	LeftArg:      "LeftArg",
-	Argument:     "Argument",
-	RightArg:     "RightArg",
-	LeftGetter:   "LeftGetter",
-	GetterType:   "GetterType",
+var tokenNames = [...]string{
+	Error:           "Error",
+	LeftPromise:     "LeftPromise",
+	RightPromise:    "RightPromise",
+	PromiseName:     "PromiseName",
+	LeftArg:         "LeftArg",
+	Argument:        "Argument",
+	RightArg:        "RightArg",
+	LeftGetter:      "LeftGetter",
+	GetterType:      "GetterType",
 	GetterSeparator: "GetterSeparator",
-	GetterValue:  "GetterValue",
-	RightGetter:  "RightGetter",
-	EOF:          "EOF",
+	GetterValue:     "GetterValue",
+	RightGetter:     "RightGetter",
+	EOF:             "EOF",
 }
 
 func (t Type) String() string {
@@ -59,7 +59,6 @@ type Token struct {
 	Pos Position
 	Val string
 }
-
 
 func (t Token) String() string {
 	return fmt.Sprintf("{%s, %s, %q}",

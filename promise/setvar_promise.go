@@ -1,7 +1,7 @@
 package promise
 
 type SetvarPromise struct {
-	VarName Argument
+	VarName  Argument
 	VarValue Argument
 }
 
@@ -15,7 +15,7 @@ const (
 	ArgumentCount = SetvarError("(setvar) needs 2 arguments")
 )
 
-func (p SetvarPromise) New(children []Promise, args []Argument) (Promise,error) {
+func (p SetvarPromise) New(children []Promise, args []Argument) (Promise, error) {
 
 	if len(args) != 2 {
 		return nil, ArgumentCount
@@ -25,11 +25,11 @@ func (p SetvarPromise) New(children []Promise, args []Argument) (Promise,error) 
 	setvar.VarName = args[0]
 	setvar.VarValue = args[1]
 
-	return setvar,nil
+	return setvar, nil
 }
 
 func (p SetvarPromise) Eval(arguments []Constant, ctx *Context) bool {
-	name  := p.VarName.GetValue(arguments, &ctx.Vars)
+	name := p.VarName.GetValue(arguments, &ctx.Vars)
 	value := p.VarValue.GetValue(arguments, &ctx.Vars)
 	ctx.Vars[name] = value
 	return true

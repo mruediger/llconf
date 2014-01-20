@@ -5,16 +5,16 @@ import (
 )
 
 func TestAndPromiseDesc(t *testing.T) {
-	promise := AndPromise{ []Promise{ DummyPromise{ "hello world", true } } }
+	promise := AndPromise{[]Promise{DummyPromise{"hello world", true}}}
 	desc := promise.Desc([]Constant{})
-	equals(t, desc,"(and (dummy [hello world]))")
+	equals(t, desc, "(and (dummy [hello world]))")
 }
 
 func TestAndPromiseEvalAllTrue(t *testing.T) {
-	promise := AndPromise{ []Promise{} }
+	promise := AndPromise{[]Promise{}}
 
-	for i :=0; i < 10; i++ {
-		promise.Promises = append(promise.Promises, DummyPromise{ "n:" + string(1), true })
+	for i := 0; i < 10; i++ {
+		promise.Promises = append(promise.Promises, DummyPromise{"n:" + string(1), true})
 	}
 
 	result := promise.Eval([]Constant{}, &Context{})
@@ -22,10 +22,10 @@ func TestAndPromiseEvalAllTrue(t *testing.T) {
 }
 
 func TestAndPromiseEvalSomeFalse(t *testing.T) {
-	promise := AndPromise{ []Promise{} }
-	promise.Promises = append(promise.Promises, DummyPromise{ "n:0", false })
-	for i :=1; i < 10; i++ {
-		promise.Promises = append(promise.Promises, DummyPromise{ "n:" + string(1), true })
+	promise := AndPromise{[]Promise{}}
+	promise.Promises = append(promise.Promises, DummyPromise{"n:0", false})
+	for i := 1; i < 10; i++ {
+		promise.Promises = append(promise.Promises, DummyPromise{"n:" + string(1), true})
 	}
 
 	result := promise.Eval([]Constant{}, &Context{})

@@ -5,17 +5,17 @@ import (
 )
 
 func TestOrPromiseDesc(t *testing.T) {
-	promise := OrPromise{ []Promise{ DummyPromise{ "hello world", true } }}
+	promise := OrPromise{[]Promise{DummyPromise{"hello world", true}}}
 
 	desc := promise.Desc([]Constant{})
-	equals(t, desc,"(or (dummy [hello world]))")
+	equals(t, desc, "(or (dummy [hello world]))")
 }
 
 func TestOrPromiseEvalAllTrue(t *testing.T) {
-	promise := OrPromise{ []Promise{} }
+	promise := OrPromise{[]Promise{}}
 
-	for i :=0; i < 10; i++ {
-		promise.Promises = append(promise.Promises, DummyPromise{ "n:" + string(1), true })
+	for i := 0; i < 10; i++ {
+		promise.Promises = append(promise.Promises, DummyPromise{"n:" + string(1), true})
 	}
 
 	result := promise.Eval([]Constant{}, &Context{})
@@ -23,11 +23,11 @@ func TestOrPromiseEvalAllTrue(t *testing.T) {
 }
 
 func TestOrPromiseEvalSomeFalse(t *testing.T) {
-	promise := OrPromise{ []Promise{} }
-	promise.Promises = append(promise.Promises, DummyPromise{ "n:0", false })
+	promise := OrPromise{[]Promise{}}
+	promise.Promises = append(promise.Promises, DummyPromise{"n:0", false})
 
-	for i :=1; i < 10; i++ {
-		promise.Promises = append(promise.Promises, DummyPromise{ "n:" + string(1), true })
+	for i := 1; i < 10; i++ {
+		promise.Promises = append(promise.Promises, DummyPromise{"n:" + string(1), true})
 	}
 
 	result := promise.Eval([]Constant{}, &Context{})
@@ -35,10 +35,10 @@ func TestOrPromiseEvalSomeFalse(t *testing.T) {
 }
 
 func TestOrPromiseEvalAllFalse(t *testing.T) {
-	promise := OrPromise{ []Promise{} }
+	promise := OrPromise{[]Promise{}}
 
-	for i :=0; i < 10; i++ {
-		promise.Promises = append(promise.Promises, DummyPromise{ "n:" + string(1), false })
+	for i := 0; i < 10; i++ {
+		promise.Promises = append(promise.Promises, DummyPromise{"n:" + string(1), false})
 	}
 
 	result := promise.Eval([]Constant{}, &Context{})

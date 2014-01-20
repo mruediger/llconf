@@ -1,19 +1,18 @@
 package promise
 
 import (
-	"os"
-	"fmt"
 	"bytes"
+	"fmt"
+	"os"
 	"testing"
 )
-
 
 func TestSetEnvNew(t *testing.T) {
 	old := SetEnv{}
 	name := Constant("setenv")
 	value := Constant("test")
 
-	d,err := old.New([]Promise{DummyPromise{}}, []Argument{name,value})
+	d, err := old.New([]Promise{DummyPromise{}}, []Argument{name, value})
 
 	if err != nil {
 		t.Errorf("(setenv) TestNew: %s", err.Error())
@@ -37,13 +36,13 @@ func TestSetNewEval(t *testing.T) {
 	ctx.Logger.Stdout = &sout
 	ctx.Logger.Info = &sout
 
-	name  := "setenv"
-	value	:= "blafasel"
+	name := "setenv"
+	value := "blafasel"
 	s := SetEnv{Constant(name), Constant(value), exec}
 
-	oldenv := fmt.Sprintf("%v",os.Environ())
+	oldenv := fmt.Sprintf("%v", os.Environ())
 	s.Eval([]Constant{}, &ctx)
-	newenv := fmt.Sprintf("%v",os.Environ())
+	newenv := fmt.Sprintf("%v", os.Environ())
 
 	if oldenv != newenv {
 		t.Errorf("(setenv) changed overall environment")

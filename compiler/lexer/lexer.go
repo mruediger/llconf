@@ -10,14 +10,14 @@ import (
 )
 
 type Lexer struct {
-	file       string
-	input      string
-	state      stateFn
-	start      int
-	pos        int
-	width      int
-	tokens     chan token.Token
-	parenDepth int
+	file        string
+	input       string
+	state       stateFn
+	start       int
+	pos         int
+	width       int
+	tokens      chan token.Token
+	parenDepth  int
 	getterDepth int
 }
 
@@ -60,7 +60,7 @@ func (l *Lexer) next() rune {
 	if int(l.pos) >= len(l.input) {
 		return eof
 	}
-	r,w := utf8.DecodeRuneInString(l.input[l.pos:])
+	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
 	l.width = w
 	l.pos += l.width
 
@@ -80,7 +80,7 @@ func lexComment(l *Lexer) stateFn {
 	switch r := l.next(); {
 	case r == eof:
 		l.emit(token.EOF)
-		return nil;
+		return nil
 	case r == '(':
 		l.backup()
 		return lexPromiseOpening
@@ -90,7 +90,6 @@ func lexComment(l *Lexer) stateFn {
 
 	return lexComment
 }
-
 
 func lexPromiseOpening(l *Lexer) stateFn {
 	l.next()
@@ -135,7 +134,7 @@ func lexInsidePromise(l *Lexer) stateFn {
 		case unicode.IsSpace(r):
 			// ignore
 		default:
-			return l.errorf("unexpected char inside promise: %q",r)
+			return l.errorf("unexpected char inside promise: %q", r)
 		}
 	}
 	return nil
@@ -147,9 +146,8 @@ func lexPromiseClosing(l *Lexer) stateFn {
 		r = l.next()
 	}
 
-
 	if r != ')' {
-		return l.errorf("unexpected char at end of promise: %q",r)
+		return l.errorf("unexpected char at end of promise: %q", r)
 	}
 
 	l.emit(token.RightPromise)
@@ -182,7 +180,7 @@ func lexArgument(l *Lexer) stateFn {
 			}
 		}
 	}
-	return nil;
+	return nil
 }
 
 func lexInsideGetter(l *Lexer) stateFn {
@@ -202,7 +200,7 @@ func lexInsideGetter(l *Lexer) stateFn {
 		case unicode.IsSpace(r):
 			//ignore
 		default:
-			return l.errorf("unexpected char inside getter: %q",r)
+			return l.errorf("unexpected char inside getter: %q", r)
 		}
 	}
 	return nil
@@ -254,7 +252,7 @@ func lexGetterValue(l *Lexer) stateFn {
 			l.backup()
 			return lexArgument
 		default:
-			return l.errorf("unexpected char inside getter value: %q",r)
+			return l.errorf("unexpected char inside getter value: %q", r)
 		}
 	}
 
@@ -275,7 +273,6 @@ func lexGetterClosing(l *Lexer) stateFn {
 func isValidNameRune(r rune) bool {
 	return r == '-' || r == '_' || r == ' ' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
-
 
 func isAlphaNumeric(r rune) bool {
 	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)

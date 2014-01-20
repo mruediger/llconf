@@ -17,15 +17,15 @@ func (p InDir) Eval(arguments []Constant, ctx *Context) bool {
 	return p.promise.Eval(arguments, &copyied_ctx)
 }
 
-func (p InDir) New(children []Promise, args []Argument) (Promise,error) {
+func (p InDir) New(children []Promise, args []Argument) (Promise, error) {
 
 	if len(args) != 1 {
-		return nil,fmt.Errorf("(indir) needs exactly on argument, found %d", len(args))
+		return nil, fmt.Errorf("(indir) needs exactly on argument, found %d", len(args))
 	}
 
 	if len(children) != 1 {
-		return nil,fmt.Errorf("(indir) needs exactly on child promise, found %d", len(children))
+		return nil, fmt.Errorf("(indir) needs exactly on child promise, found %d", len(children))
 	}
 
-	return InDir{args[0],children[0]},nil
+	return InDir{args[0], children[0]}, nil
 }

@@ -1,28 +1,27 @@
 package promise
 
 import (
-	"io"
 	"errors"
+	"io"
 	"strings"
 )
 
 type ReadvarPromise struct {
 	VarName Argument
-	Exec Promise
+	Exec    Promise
 }
 
 type ReadvarWriter struct {
 	writer io.Writer
-	bytes []byte
+	bytes  []byte
 }
-
 
 func (w *ReadvarWriter) Write(p []byte) (n int, err error) {
 	w.bytes = append(w.bytes, p...)
 	return w.writer.Write(p)
 }
 
-func (p ReadvarPromise) New(children []Promise, args []Argument) (Promise,error) {
+func (p ReadvarPromise) New(children []Promise, args []Argument) (Promise, error) {
 	promise := ReadvarPromise{}
 
 	if len(args) == 1 {
@@ -45,15 +44,15 @@ func (p ReadvarPromise) New(children []Promise, args []Argument) (Promise,error)
 		return nil, errors.New("(readvar) did not found an exec promise")
 	}
 
-	return promise,nil
+	return promise, nil
 }
 
-func (p ReadvarPromise)	Desc(arguments []Constant) string {
+func (p ReadvarPromise) Desc(arguments []Constant) string {
 	args := make([]string, len(arguments))
-	for i,v := range arguments {
+	for i, v := range arguments {
 		args[i] = v.String()
 	}
-	return "(readvar " + strings.Join(args,", ") + ")"
+	return "(readvar " + strings.Join(args, ", ") + ")"
 }
 
 func (p ReadvarPromise) Eval(arguments []Constant, ctx *Context) bool {
@@ -61,7 +60,7 @@ func (p ReadvarPromise) Eval(arguments []Constant, ctx *Context) bool {
 
 	wrapped_stdout := ReadvarWriter{
 		writer: ctx.Logger.Stdout,
-		bytes: bytes,
+		bytes:  bytes,
 	}
 
 	wrapped_logger_ctx := *ctx
@@ -69,7 +68,7 @@ func (p ReadvarPromise) Eval(arguments []Constant, ctx *Context) bool {
 
 	result := p.Exec.Eval(arguments, &wrapped_logger_ctx)
 
-	name  := p.VarName.GetValue(arguments, &ctx.Vars)
+	name := p.VarName.GetValue(arguments, &ctx.Vars)
 	value := string(wrapped_stdout.bytes)
 
 	ctx.Vars[name] = strings.TrimSpace(value)

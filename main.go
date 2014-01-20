@@ -1,18 +1,18 @@
 package main
 
-import(
+import (
 	"flag"
 	"fmt"
 	"os"
 )
 
 type Command struct {
-	Name string
-	Usage string
+	Name      string
+	Usage     string
 	ShortHelp string
-	LongHelp string
-	Run func(args []string)
-	Flag flag.FlagSet
+	LongHelp  string
+	Run       func(args []string)
+	Flag      flag.FlagSet
 }
 
 var commands = []*Command{
@@ -30,7 +30,7 @@ func main() {
 		return
 	}
 
-	for _,cmd := range commands {
+	for _, cmd := range commands {
 		if cmd.Name == args[0] && cmd.Run != nil {
 			cmd.Flag.Parse(args[1:])
 			cmd_args := cmd.Flag.Args()
@@ -47,7 +47,7 @@ func usage() {
 
 	for _, cmd := range commands {
 		if cmd.Usage != "" {
-			fmt.Printf("    %s\n",cmd.Usage)
+			fmt.Printf("    %s\n", cmd.Usage)
 		}
 	}
 	fmt.Printf("\n")
