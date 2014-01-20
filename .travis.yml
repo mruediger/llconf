@@ -4,6 +4,10 @@ go:
 - 1.1
 - release
 
+branches:
+  only:
+    - master
+
 before_deploy:
   - "go build -o build/llconf"
   - "cd build"
