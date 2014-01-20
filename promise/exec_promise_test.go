@@ -1,23 +1,23 @@
 package promise
 
 import (
-	"testing"
 	"bytes"
 	"strconv"
+	"testing"
 )
 
 func TestExecPromise(t *testing.T) {
 	var promise Promise
-	promise = ExecPromise{ExecTest,[]Argument{Constant{"/"},
-		Constant{"/bin/echo"},
-		Constant{"Hello"},
+	promise = ExecPromise{ExecTest, []Argument{
+		Constant("/bin/echo"),
+		Constant("Hello"),
 		ArgGetter{0}}}
 
-	var sout,serr bytes.Buffer
+	var sout, serr bytes.Buffer
 	ctx := Context{}
 	ctx.Logger = Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
 
-	res := promise.Eval([]Constant{},&ctx)
+	res := promise.Eval([]Constant{}, &ctx)
 	equals(t, true, res)
 	equals(t, strconv.Itoa(24), strconv.Itoa(len(sout.String())))
 	equals(t, "/bin/echo Hello \nHello \n", sout.String())
@@ -25,18 +25,16 @@ func TestExecPromise(t *testing.T) {
 }
 
 func TestPipePromise(t *testing.T) {
-	exec1 := ExecPromise{ExecTest, []Argument{Constant{"/tmp"},
-		Constant{"/bin/echo"},
-		Constant{"hello world"}}}
-	exec2 := ExecPromise{ExecChange, []Argument{Constant{"/tmp"},
-		Constant{"/usr/bin/rev"}}}
+	exec1 := ExecPromise{ExecTest, []Argument{Constant("/bin/echo"),
+		Constant("hello world")}}
+	exec2 := ExecPromise{ExecChange, []Argument{Constant("/usr/bin/rev")}}
 
 	var promise Promise
 
 	promises := []ExecPromise{exec1, exec2}
 	promise = PipePromise{promises}
 
-	var sout,serr bytes.Buffer
+	var sout, serr bytes.Buffer
 	ctx := Context{}
 	ctx.Logger = Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
 
@@ -48,10 +46,9 @@ func TestPipePromise(t *testing.T) {
 }
 
 func TestExecReporting(t *testing.T) {
-	arguments := []Argument {
-		Constant{"/"},
-		Constant{"/bin/echo"},
-		Constant{"Hello"},
+	arguments := []Argument{
+		Constant("/bin/echo"),
+		Constant("Hello"),
 		ArgGetter{0},
 	}
 
@@ -59,17 +56,17 @@ func TestExecReporting(t *testing.T) {
 		promise ExecPromise
 		changes int
 	}{
-		{ExecPromise{ExecChange, arguments},1},
-		{ExecPromise{ExecTest, arguments},0},
+		{ExecPromise{ExecChange, arguments}, 1},
+		{ExecPromise{ExecTest, arguments}, 0},
 	}
 
-	for _,test := range tests {
-		var sout,serr bytes.Buffer
+	for _, test := range tests {
+		var sout, serr bytes.Buffer
 		ctx := Context{}
 		ctx.Logger = Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
 
-		res := test.promise.Eval([]Constant{},&ctx)
+		res := test.promise.Eval([]Constant{}, &ctx)
 		equals(t, true, res)
-		equals(t, strconv.Itoa(test.changes), strconv.Itoa(len(ctx.Logger.Changes)))
+		equals(t, strconv.Itoa(test.changes), strconv.Itoa(ctx.Logger.Changes))
 	}
 }

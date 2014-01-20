@@ -14,5 +14,5 @@ func (envGetter EnvGetter) GetValue(arguments []Constant, vars *Variables) strin
 }
 
 func (envGetter EnvGetter) String() string {
-	return "env->$" + envGetter.Name + "("+ os.Getenv(envGetter.Name) + ")"
+	return "env->$" + envGetter.Name + "(" + os.Getenv(envGetter.Name) + ")"
 }

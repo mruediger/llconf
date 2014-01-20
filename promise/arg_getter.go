@@ -12,7 +12,7 @@ func (argGetter ArgGetter) GetValue(arguments []Constant, vars *Variables) strin
 	if len(arguments) <= argGetter.Position {
 		return ""
 	}
-	return arguments[argGetter.Position].Value
+	return string(arguments[argGetter.Position])
 }
 
 func (argGetter ArgGetter) String() string {

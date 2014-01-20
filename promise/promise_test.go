@@ -1,22 +1,26 @@
 package promise
 
 import (
-	"testing"
 	"strings"
+	"testing"
 )
 
 type DummyPromise struct {
 	StringValue string
-	EvalValue bool
+	EvalValue   bool
+}
+
+func (p DummyPromise) New(children []Promise, args []Argument) (Promise, error) {
+	return DummyPromise{}, nil
 }
 
 func (p DummyPromise) Desc(arguments []Constant) string {
 	var args []string
 
-	for _,argument := range( arguments ) {
+	for _, argument := range arguments {
 		args = append(args, argument.String())
 	}
-	return "(dummy [" + p.StringValue + "]" + strings.Join(args," ") + ")"
+	return "(dummy [" + p.StringValue + "]" + strings.Join(args, " ") + ")"
 }
 
 func (p DummyPromise) Eval(arguments []Constant, ctx *Context) bool {

@@ -1,6 +1,7 @@
 package promise
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -26,81 +27,118 @@ func (t ExecType) Name() string {
 
 func (t ExecType) ReportResult(logger *Logger, result bool) {
 	if t == ExecChange {
-		logger.Changes = append(logger.Changes, ExecType(3))
+		logger.Changes++
 	}
+
+	if t == ExecTest {
+		logger.Tests++
+	}
+}
+
+func (t ExecType) String() string {
+	return t.Name()
 }
 
 type ExecPromise struct {
-	Type ExecType
+	Type      ExecType
 	Arguments []Argument
 }
 
-func (p ExecPromise) getCommand(arguments []Constant, vars *Variables) *exec.Cmd {
-	largs := p.Arguments
-	dir,largs := largs[0].GetValue(arguments, vars), largs[1:]
+func (p ExecPromise) New(children []Promise, args []Argument) (Promise, error) {
+	return ExecPromise{Type: p.Type, Arguments: args}, nil
+}
 
-	cmd := ""
-	filestat,error := os.Stat(dir)
-	if error != nil || !filestat.IsDir() {
-		cmd = dir
-		dir = os.Getenv("PWD")
-	} else {
-		cmd, largs = largs[0].GetValue(arguments, vars), largs[1:]
-	}
+func (p ExecPromise) getCommand(arguments []Constant, ctx *Context) (*exec.Cmd, error) {
+	cmd := p.Arguments[0].GetValue(arguments, &ctx.Vars)
+	largs := p.Arguments[1:]
 
 	args := []string{}
-
-	for _,argument := range(largs) {
-		args = append(args,argument.GetValue(arguments, vars))
+	for _, argument := range largs {
+		args = append(args, argument.GetValue(arguments, &ctx.Vars))
 	}
 
-	command := exec.Command(cmd,args...)
-	command.Dir = dir
-	return command
+	command := exec.Command(cmd, args...)
+
+	if ctx.InDir != "" {
+		fs, err := os.Stat(ctx.InDir)
+		if err != nil {
+			return nil, err
+		}
+		if !fs.IsDir() {
+			return nil, fmt.Errorf("not a directory: %s", ctx.InDir)
+		}
+		command.Dir = ctx.InDir
+	} else {
+		command.Dir = os.Getenv("PWD")
+	}
+
+	command.Env = os.Environ()
+	for _, v := range ctx.Env {
+		command.Env = append(command.Env, v)
+	}
+
+	return command, nil
 }
 
 func (p ExecPromise) Desc(arguments []Constant) string {
-	largs := p.Arguments
-	dir,largs := largs[0].String(), largs[1:]
-	cmd := ""
-
-	filestat,error := os.Stat(dir)
-	if error != nil || !filestat.IsDir() {
-		cmd = dir
-		dir = os.Getenv("PWD")
-	} else {
-		cmd, largs = largs[0].String(), largs[1:]
+	if len(p.Arguments) == 0 {
+		return "(" + p.Type.Name() + ")"
 	}
+
+	cmd := p.Arguments[0].GetValue(arguments, &Variables{})
+	largs := p.Arguments[1:]
 
 	args := make([]string, len(largs))
-	for i,v := range largs {
-		args[i] = v.String()
+	for i, v := range largs {
+		args[i] = v.GetValue(arguments, &Variables{})
 	}
 
-	return "(" + p.Type.Name() + " in_dir(" + dir + ") <" + cmd + " [" + strings.Join(args,", ") + "] >)"
+	return "(" + p.Type.Name() + " <" + cmd + " [" + strings.Join(args, ", ") + "] >)"
 }
 
 func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
-	command := p.getCommand(arguments, &ctx.Vars)
+	command, err := p.getCommand(arguments, ctx)
+	if err != nil {
+		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		return false
+	}
 	command.Stdout = ctx.Logger.Stdout
 	command.Stderr = ctx.Logger.Stderr
 
 	ctx.Logger.Info.Write([]byte(strings.Join(command.Args, " ") + "\n"))
 
-	err := command.Run()
+	err = command.Run()
 
 	result := (err == nil)
 	p.Type.ReportResult(&ctx.Logger, result)
-	return result;
+	return result
 }
+
+/////////////////////////////
 
 type PipePromise struct {
 	Execs []ExecPromise
 }
 
+func (p PipePromise) New(children []Promise, args []Argument) (Promise, error) {
+
+	execs := []ExecPromise{}
+
+	for _, c := range children {
+		switch t := c.(type) {
+		case ExecPromise:
+			execs = append(execs, t)
+		default:
+			return nil, fmt.Errorf("only (test) or (change) promises allowed inside (pipe) promise")
+		}
+	}
+
+	return PipePromise{execs}, nil
+}
+
 func (p PipePromise) Desc(arguments []Constant) string {
 	retval := "(pipe"
-	for _,v := range(p.Execs) {
+	for _, v := range p.Execs {
 		retval += " " + v.Desc(arguments)
 	}
 	return retval + ")"
@@ -110,35 +148,40 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
 
-	for _,v := range(p.Execs) {
-		cmd :=  v.getCommand(arguments, &ctx.Vars)
+	for _, v := range p.Execs {
+		cmd, err := v.getCommand(arguments, ctx)
+		if err != nil {
+			ctx.Logger.Stderr.Write([]byte(err.Error()))
+			return false
+		}
+
 		cstrings = append(cstrings, strings.Join(cmd.Args, " "))
 		commands = append(commands, cmd)
 	}
 
-	for i, command := range(commands[:len(commands) - 1]) {
+	for i, command := range commands[:len(commands)-1] {
 		out, err := command.StdoutPipe()
 		if err != nil {
 			ctx.Logger.Stderr.Write([]byte(err.Error()))
 			return false
 		}
 		command.Start()
-		commands[i + 1].Stdin = out
+		commands[i+1].Stdin = out
 	}
 
 	ctx.Logger.Info.Write([]byte(strings.Join(cstrings, " | ") + "\n"))
 
-	last_cmd := commands[len(commands) - 1]
+	last_cmd := commands[len(commands)-1]
 	last_cmd.Stdout = ctx.Logger.Stdout
 	last_cmd.Stderr = ctx.Logger.Stderr
 
 	err := last_cmd.Run()
 
-	for _, command := range(commands[:len(commands) - 1]) {
+	for _, command := range commands[:len(commands)-1] {
 		command.Wait()
 	}
 
-	if (err != nil) {
+	if err != nil {
 		return false
 	} else {
 		return true

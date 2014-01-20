@@ -1,19 +1,18 @@
 package main
 
 import (
-	"flag"
-	"time"
-	"log"
 	"errors"
+	"flag"
 	"fmt"
+	"log"
+	"log/syslog"
 	"os"
 	"path/filepath"
-	"log/syslog"
+	"time"
 
 	"bitbucket.org/kardianos/osext"
 
-	"github.com/mruediger/llconf/io"
-	"github.com/mruediger/llconf/parse"
+	"github.com/mruediger/llconf/compiler"
 	libpromise "github.com/mruediger/llconf/promise"
 )
 
@@ -23,24 +22,24 @@ type LogWriter struct {
 
 func (l LogWriter) Write(b []byte) (n int, err error) {
 	l.log.Print(string(b))
-	return len(b),nil
+	return len(b), nil
 }
 
 var serve = &Command{
-	Name: "serve",
-	Usage: "serve [arguments...]",
+	Name:      "serve",
+	Usage:     "serve [arguments...]",
 	ShortHelp: "serve",
-	LongHelp: "bla",
-	Run: runServ,
+	LongHelp:  "bla",
+	Run:       runServ,
 }
 
-var serve_cfg struct{
+var serve_cfg struct {
 	root_promise string
-	verbose bool
-	use_syslog bool
-	interval int
-	inp_dir string
-	workdir string
+	verbose      bool
+	use_syslog   bool
+	interval     int
+	inp_dir      string
+	workdir      string
 }
 
 func init() {
@@ -53,7 +52,7 @@ func init() {
 
 func runServ(args []string) {
 	parseArguments(args)
-	logi,loge := setupLogging()
+	logi, loge := setupLogging()
 
 	quit := make(chan int)
 
@@ -69,11 +68,11 @@ func runServ(args []string) {
 		if err == nil {
 			promise_tree = new_promise_tree
 		} else {
-			loge.Printf("error while parsing input folder: %v\n",err)
+			loge.Printf("error while parsing input folder: %v\n", err)
 		}
 
 		if promise_tree != nil {
-			checkPromise(promise_tree,logi,loge, flag.Args())
+			checkPromise(promise_tree, logi, loge, flag.Args())
 		} else {
 			fmt.Fprintf(os.Stderr, "could not find any valid promises\n")
 		}
@@ -82,14 +81,14 @@ func runServ(args []string) {
 	}
 }
 
-func setupLogging() (logi,loge *log.Logger){
+func setupLogging() (logi, loge *log.Logger) {
 	if serve_cfg.use_syslog {
-		logi,_ = syslog.NewLogger(syslog.LOG_NOTICE, log.LstdFlags)
-		loge,_ = syslog.NewLogger(syslog.LOG_ERR, log.LstdFlags)
+		logi, _ = syslog.NewLogger(syslog.LOG_NOTICE, log.LstdFlags)
+		loge, _ = syslog.NewLogger(syslog.LOG_ERR, log.LstdFlags)
 		return
 	} else {
 		logi = log.New(os.Stdout, "llconf (info)", log.LstdFlags)
-		loge = log.New(os.Stderr, "llconf (err)", log.LstdFlags | log.Lshortfile)
+		loge = log.New(os.Stderr, "llconf (err)", log.LstdFlags|log.Lshortfile)
 		return
 	}
 }
@@ -112,19 +111,17 @@ func parseArguments(args []string) {
 	}
 
 	// when run as daemon, the home folder isn't set
-    home := os.Getenv("HOME")
+	home := os.Getenv("HOME")
 	if home == "" {
 		os.Setenv("HOME", serve_cfg.workdir)
 	}
 }
 
-
-func updatePromise(folder, root string ) (libpromise.Promise, error) {
-	reader,err := io.NewFolderRuneReader( folder )
-	if err != nil { return nil, err}
-
-	promises, err := parse.ParsePromises( &reader )
-	if err != nil { return nil, err}
+func updatePromise(folder, root string) (libpromise.Promise, error) {
+	promises, err := compiler.Compile(folder)
+	if err != nil {
+		return nil, err
+	}
 
 	if promise, promise_present := promises[root]; promise_present {
 		return promise, nil
@@ -135,16 +132,15 @@ func updatePromise(folder, root string ) (libpromise.Promise, error) {
 
 func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 	vars := libpromise.Variables{}
-	vars["input_dir"]  = serve_cfg.inp_dir
-	vars["work_dir"]   = serve_cfg.workdir
-	exe,_ := osext.Executable()
+	vars["input_dir"] = serve_cfg.inp_dir
+	vars["work_dir"] = serve_cfg.workdir
+	exe, _ := osext.Executable()
 	vars["executable"] = exe
+	env := []string{}
 
-	changes := []libpromise.ExecType{}
-	tests := []libpromise.ExecType{}
-	logger := libpromise.Logger{ LogWriter{ logi }, LogWriter{ loge }, LogWriter{ logi }, changes, tests }
+	logger := libpromise.Logger{LogWriter{logi}, LogWriter{loge}, LogWriter{logi}, 0, 0}
 
-	ctx := libpromise.Context{ logger, vars, args }
+	ctx := libpromise.Context{logger, vars, env, args, ""}
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
 
 	if promises_fullfilled {
