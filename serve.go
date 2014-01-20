@@ -140,7 +140,7 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 
 	logger := libpromise.Logger{LogWriter{logi}, LogWriter{loge}, LogWriter{logi}, 0, 0}
 
-	ctx := libpromise.Context{logger, vars, env, args, ""}
+	ctx := libpromise.Context{logger, vars, args, env, ""}
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
 
 	if promises_fullfilled {
