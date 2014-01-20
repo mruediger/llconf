@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
 )
 
 type RestartPromise struct {
@@ -54,9 +55,14 @@ func (p RestartPromise) Eval(arguments []Constant, ctx *Context) bool {
 }
 
 func (p RestartPromise) restartLLConf(exe string, args []string, stdout, stderr io.Writer) (*exec.Cmd, error) {
+
 	cmd := exec.Command(exe, args...)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setsid: true,
+	}
+
 	err := cmd.Start()
 	return cmd, err
 }
