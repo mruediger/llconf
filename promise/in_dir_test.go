@@ -20,7 +20,7 @@ func TestNew(t *testing.T) {
 
 func TestEval(t *testing.T) {
 	arguments := []Argument{
-		Constant("/usr/bin/pwd"),
+		Constant("pwd"),
 	}
 	exec := ExecPromise{ExecTest, arguments}
 
@@ -42,7 +42,7 @@ func TestEval(t *testing.T) {
 
 	out := sout.String()
 
-	if out != "/usr/bin/pwd\n/var\n" {
+	if out != "pwd\n/var\n" {
 		t.Errorf("exec not in right dir, found: %s", out)
 	}
 }
