@@ -138,9 +138,20 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 	vars["executable"] = exe
 	env := []string{}
 
-	logger := libpromise.Logger{LogWriter{logi}, LogWriter{loge}, LogWriter{logi}, 0, 0}
+	logger := libpromise.Logger{
+		Stdout:  LogWriter{logi},
+		Stderr:  LogWriter{loge},
+		Info:    LogWriter{logi},
+		Changes: 0,
+		Tests:   0}
 
-	ctx := libpromise.Context{logger, vars, args, env, ""}
+	ctx := libpromise.Context{
+		Logger: logger,
+		Vars:   vars,
+		Args:   args,
+		Env:    env,
+		InDir:  ""}
+
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
 
 	if promises_fullfilled {
