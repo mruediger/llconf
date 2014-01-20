@@ -62,10 +62,10 @@ func (p ExecPromise) getCommand(arguments []Constant, ctx *Context) (*exec.Cmd, 
 	if ctx.InDir != "" {
 		fs, err := os.Stat(ctx.InDir)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("(indir) error: %s", err.Error())
 		}
 		if !fs.IsDir() {
-			return nil, fmt.Errorf("not a directory: %s", ctx.InDir)
+			return nil, fmt.Errorf("(indir) not a directory: %s", ctx.InDir)
 		}
 		command.Dir = ctx.InDir
 	} else {
