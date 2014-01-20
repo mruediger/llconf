@@ -1,7 +1,6 @@
 language: go
 script: go test -v ./...
 go:
-- 1.1
 - release
 
 branches:
@@ -26,5 +25,3 @@ deploy:
       o5JRJs+DiKYWxhyXoz2NZ7YU8xaDl2tXPR+IkVgTeNDuH0M4R8A=
   bucket: "llconf"
   skip_cleanup: true
-  on:
-    branch: "master"
