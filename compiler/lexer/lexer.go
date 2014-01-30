@@ -51,7 +51,6 @@ func (l *Lexer) emit(tt token.Type) {
 		l.line(),
 		l.start,
 		l.pos}, l.input[l.start:l.pos]}
-	token.Val = strings.TrimSpace(token.Val)
 	l.tokens <- token
 	l.start = l.pos
 }
@@ -67,8 +66,39 @@ func (l *Lexer) next() rune {
 	return r
 }
 
-func (l *Lexer) backup() {
+func (l *Lexer) backup() rune {
 	l.pos -= l.width
+	r,w := utf8.DecodeRuneInString(l.input[l.pos:])
+	l.width = w
+
+	return r
+}
+
+func (l *Lexer) removeTrailingWhitespace() {
+	s := l.backup()
+	for unicode.IsSpace(s) {
+		s = l.backup()
+	}
+	l.next()
+}
+
+func (l *Lexer) removeLeadingWhitespace() {
+	if int(l.pos) >= len(l.input) {
+		return
+	}
+
+	r,w := utf8.DecodeRuneInString(l.input[l.pos:])
+
+	for unicode.IsSpace(r) {
+		l.width = w
+		l.pos += l.width
+		r,w = utf8.DecodeRuneInString(l.input[l.pos:])
+	}
+	l.start = l.pos
+}
+
+func (l *Lexer) ignore() {
+	l.start = l.pos
 }
 
 // this solution is easier than handle next+backup
@@ -92,6 +122,7 @@ func lexComment(l *Lexer) stateFn {
 }
 
 func lexPromiseOpening(l *Lexer) stateFn {
+	l.removeLeadingWhitespace()
 	l.next()
 	l.parenDepth++
 	l.emit(token.LeftPromise)
@@ -99,6 +130,7 @@ func lexPromiseOpening(l *Lexer) stateFn {
 }
 
 func lexPromiseName(l *Lexer) stateFn {
+	l.removeLeadingWhitespace()
 	for {
 		r := l.next()
 		if r == eof {
@@ -107,6 +139,7 @@ func lexPromiseName(l *Lexer) stateFn {
 
 		if !isValidNameRune(r) {
 			l.backup()
+			l.removeTrailingWhitespace()
 			l.emit(token.PromiseName)
 			return lexInsidePromise
 		}
@@ -141,11 +174,8 @@ func lexInsidePromise(l *Lexer) stateFn {
 }
 
 func lexPromiseClosing(l *Lexer) stateFn {
+	l.removeLeadingWhitespace()
 	r := l.next()
-	for unicode.IsSpace(r) {
-		r = l.next()
-	}
-
 	if r != ')' {
 		return l.errorf("unexpected char at end of promise: %q", r)
 	}
@@ -161,6 +191,7 @@ func lexPromiseClosing(l *Lexer) stateFn {
 }
 
 func lexArgument(l *Lexer) stateFn {
+	l.removeLeadingWhitespace()
 	l.next()
 	l.emit(token.LeftArg)
 
@@ -184,6 +215,7 @@ func lexArgument(l *Lexer) stateFn {
 }
 
 func lexInsideGetter(l *Lexer) stateFn {
+	l.removeLeadingWhitespace()
 	for {
 		switch r := l.next(); {
 		case r == eof:
@@ -220,16 +252,20 @@ func lexGetterType(l *Lexer) stateFn {
 			l.errorf("unclosed getter")
 		case r == ':':
 			l.backup()
+			l.removeTrailingWhitespace()
 			l.emit(token.GetterType)
 			l.next()
+			l.removeTrailingWhitespace()
 			l.emit(token.GetterSeparator)
 			return lexGetterValue
 		case r == '"':
 			l.backup()
+			l.removeTrailingWhitespace()
 			l.emit(token.GetterType)
 			return lexArgument
 		case r == '[':
 			l.backup()
+			l.removeTrailingWhitespace()
 			l.emit(token.GetterType)
 			return lexInsideGetter
 		}
@@ -246,6 +282,7 @@ func lexGetterValue(l *Lexer) stateFn {
 			//continue
 		case r == ']':
 			l.backup()
+			l.removeTrailingWhitespace()
 			l.emit(token.GetterValue)
 			return lexGetterClosing
 		case r == '"':
@@ -260,6 +297,7 @@ func lexGetterValue(l *Lexer) stateFn {
 }
 
 func lexGetterClosing(l *Lexer) stateFn {
+	l.removeLeadingWhitespace()
 	l.next()
 	l.emit(token.RightGetter)
 	l.getterDepth--

@@ -56,7 +56,7 @@ var tests = []test{
 		{token.LeftPromise, 0, "("},
 		{token.PromiseName, 1, "hello"},
 		{token.LeftPromise, 7, "("},
-		{token.PromiseName, 8, "world"},
+		{token.PromiseName, 9, "world"},
 		{token.RightPromise, 15, ")"},
 		{token.RightPromise, 16, ")"},
 		{token.EOF, 17, ""}}},
@@ -64,9 +64,9 @@ var tests = []test{
 		{token.LeftPromise, 0, "("},
 		{token.PromiseName, 1, "hello"},
 		{token.LeftPromise, 7, "("},
-		{token.PromiseName, 8, "world"},
+		{token.PromiseName, 9, "world"},
 		{token.RightPromise, 15, ")"},
-		{token.LeftArg, 16, "\""},
+		{token.LeftArg, 17, "\""},
 		{token.Argument, 18, "bla"},
 		{token.RightArg, 21, "\""},
 		{token.RightPromise, 22, ")"},
@@ -78,7 +78,7 @@ var tests = []test{
 		{token.LeftArg, 6, "\""},
 		{token.Argument, 7, "bla"},
 		{token.RightArg, 10, "\""},
-		{token.RightPromise, 11, ")"},
+		{token.RightPromise, 13, ")"},
 		{token.EOF, 14, ""}}},
 	{"two args", "(test \"bla\" \"blubb\" )", []testToken{
 		{token.LeftPromise, 0, "("},
@@ -86,10 +86,10 @@ var tests = []test{
 		{token.LeftArg, 6, "\""},
 		{token.Argument, 7, "bla"},
 		{token.RightArg, 10, "\""},
-		{token.LeftArg, 11, "\""},
+		{token.LeftArg, 12, "\""},
 		{token.Argument, 13, "blubb"},
 		{token.RightArg, 18, "\""},
-		{token.RightPromise, 19, ")"},
+		{token.RightPromise, 20, ")"},
 		{token.EOF, 21, ""}}},
 
 	{"unclosed arg", "(test \"bla)", []testToken{
@@ -98,7 +98,7 @@ var tests = []test{
 		{token.LeftArg, 6, "\""},
 		{token.Error, 7, "unexpected eof in argument"}}},
 
-	{"getter", "(test [var:test])", []testToken{
+	{"getter", "(test [var:test] )", []testToken{
 		{token.LeftPromise, 0, "("},
 		{token.PromiseName, 1, "test"},
 		{token.LeftGetter, 6, "["},
@@ -106,9 +106,9 @@ var tests = []test{
 		{token.GetterSeparator, 10, ":"},
 		{token.GetterValue, 11, "test"},
 		{token.RightGetter, 15, "]"},
-		{token.RightPromise, 16, ")"},
-		{token.EOF, 17, ""}}},
-	{"joiner", "(test [join [var:bla] \"blubb\"])", []testToken{
+		{token.RightPromise, 17, ")"},
+		{token.EOF, 18, ""}}},
+	{"joiner", "(test [join [var:bla ] \" blubb\"])", []testToken{
 		{token.LeftPromise, 0, "("},
 		{token.PromiseName, 1, "test"},
 		{token.LeftGetter, 6, "["},
@@ -117,13 +117,13 @@ var tests = []test{
 		{token.GetterType, 13, "var"},
 		{token.GetterSeparator, 16, ":"},
 		{token.GetterValue, 17, "bla"},
-		{token.RightGetter, 20, "]"},
-		{token.LeftArg, 21, "\""},
-		{token.Argument, 23, "blubb"},
-		{token.RightArg, 28, "\""},
-		{token.RightGetter, 29, "]"},
-		{token.RightPromise, 30, ")"},
-		{token.EOF, 31, ""}}},
+		{token.RightGetter, 21, "]"},
+		{token.LeftArg, 23, "\""},
+		{token.Argument, 24, " blubb"},
+		{token.RightArg, 30, "\""},
+		{token.RightGetter, 31, "]"},
+		{token.RightPromise, 32, ")"},
+		{token.EOF, 33, ""}}},
 }
 
 func TestLexer(t *testing.T) {
