@@ -6,7 +6,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/mruediger/llconf/compiler/token"
+	"github.com/d3media/llconf/compiler/token"
 )
 
 type Lexer struct {

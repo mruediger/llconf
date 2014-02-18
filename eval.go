@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mruediger/llconf/compiler"
+	"github.com/d3media/llconf/compiler"
 )
 
 var eval = &Command{

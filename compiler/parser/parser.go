@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/mruediger/llconf/compiler/lexer"
-	"github.com/mruediger/llconf/compiler/token"
-	"github.com/mruediger/llconf/promise"
+	"github.com/d3media/llconf/compiler/lexer"
+	"github.com/d3media/llconf/compiler/token"
+	"github.com/d3media/llconf/promise"
 )
 
 var builtins = map[string]promise.Promise{

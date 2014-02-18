@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mruediger/llconf/compiler/parser"
-	"github.com/mruediger/llconf/promise"
+	"github.com/d3media/llconf/compiler/parser"
+	"github.com/d3media/llconf/promise"
 )
 
 type FolderReader struct {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mruediger/llconf/promise"
+	"github.com/d3media/llconf/promise"
 )
 
 func TestParser(t *testing.T) {

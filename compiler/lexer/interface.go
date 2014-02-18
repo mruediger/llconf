@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"github.com/mruediger/llconf/compiler/token"
+	"github.com/d3media/llconf/compiler/token"
 )
 
 func Lex(file, input string) *Lexer {

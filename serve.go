@@ -12,8 +12,8 @@ import (
 
 	"bitbucket.org/kardianos/osext"
 
-	"github.com/mruediger/llconf/compiler"
-	libpromise "github.com/mruediger/llconf/promise"
+	"github.com/d3media/llconf/compiler"
+	libpromise "github.com/d3media/llconf/promise"
 )
 
 type LogWriter struct {

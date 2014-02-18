@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mruediger/llconf/compiler/token"
+	"github.com/d3media/llconf/compiler/token"
 )
 
 type test struct {
