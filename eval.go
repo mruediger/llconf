@@ -47,5 +47,5 @@ func evalRun(args []string) {
 		fmt.Fprintf(os.Stderr, "specified goal (%s) not found in config\n", run_cfg.promise)
 		return
 	}
-	fmt.Println("evaluation successfull")
+	fmt.Println("evaluation successful")
 }
