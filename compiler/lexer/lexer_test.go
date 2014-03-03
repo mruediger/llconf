@@ -124,6 +124,20 @@ var tests = []test{
 		{token.RightGetter, 31, "]"},
 		{token.RightPromise, 32, ")"},
 		{token.EOF, 33, ""}}},
+	{"joiner2", "(test [join \"bla \" \"blubb\"])", []testToken{
+		{token.LeftPromise, 0, "("},
+		{token.PromiseName, 1, "test"},
+		{token.LeftGetter, 6, "["},
+		{token.GetterType, 7, "join"},
+		{token.LeftArg, 12, "\""},
+		{token.Argument, 13, "bla "},
+		{token.RightArg, 17, "\""},
+		{token.LeftArg, 19, "\""},
+		{token.Argument, 20, "blubb"},
+		{token.RightArg, 25, "\""},
+		{token.RightGetter, 26, "]"},
+		{token.RightPromise, 27, ")"},
+		{token.EOF, 28, ""}}},
 }
 
 func TestLexer(t *testing.T) {
