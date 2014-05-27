@@ -111,7 +111,6 @@ func TestMultipleInputs(t *testing.T) {
 }
 
 func TestNestedInExec(t *testing.T) {
-
 	_, err := Parse([]Input{
 		{"main.cnf", "(hallo (test \"cmd\" (pipe (test \"echo\" \"foo\") (test \"cat\"))))"},
 	})
@@ -119,5 +118,4 @@ func TestNestedInExec(t *testing.T) {
 	if err == nil {
 		t.Errorf("TestNestedInExec: %s", err.Error())
 	}
-
 }
