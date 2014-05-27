@@ -20,6 +20,10 @@ func (p RestartPromise) New(children []Promise, args []Argument) (Promise, error
 		return nil, errors.New("(restart) needs exactly 1 argument")
 	}
 
+	if len(children) != 0 {
+		return nil, errors.New("(restart) cannot have nested promises")
+	}
+
 	return RestartPromise{args[0]}, nil
 }
 

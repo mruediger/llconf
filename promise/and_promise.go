@@ -1,10 +1,20 @@
 package promise
 
+import "fmt"
+
 type AndPromise struct {
 	Promises []Promise
 }
 
 func (p AndPromise) New(children []Promise, args []Argument) (Promise, error) {
+	if len(children) == 0 {
+		return nil, fmt.Errorf("(and) needs at least 1 nested promise")
+	}
+
+	if len(args) != 0 {
+		return nil, fmt.Errorf("string args are not allowed in (and) promises")
+	}
+
 	return AndPromise{children}, nil
 }
 
