@@ -21,7 +21,7 @@ func TestParser(t *testing.T) {
 }
 
 func TestMultiplePromises(t *testing.T) {
-	_, err := Parse([]Input{{"main.cnf", "(hallo (test)) (welt (test))"}})
+	_, err := Parse([]Input{{"main.cnf", "(hallo (test \"foo\" )) (welt (test \"bar\"))"}})
 	if err != nil {
 		t.Errorf("MultiplePromises: " + err.Error())
 	}
@@ -108,4 +108,16 @@ func TestMultipleInputs(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestMultipleInputs: " + err.Error())
 	}
+}
+
+func TestNestedInExec(t *testing.T) {
+
+	_, err := Parse([]Input{
+		{"main.cnf", "(hallo (test \"cmd\" (pipe (test \"echo\" \"foo\") (test \"cat\"))))"},
+	})
+
+	if err == nil {
+		t.Errorf("TestNestedInExec: %s", err.Error())
+	}
+
 }

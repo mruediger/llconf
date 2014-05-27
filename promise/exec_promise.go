@@ -45,6 +45,14 @@ type ExecPromise struct {
 }
 
 func (p ExecPromise) New(children []Promise, args []Argument) (Promise, error) {
+	if len(children) != 0 {
+		return nil, fmt.Errorf("nested promises not allowed in (%s)", p.Type.Name())
+	}
+
+	if len(args) == 0 {
+		return nil, fmt.Errorf("(%s) needs at least 1 string argument", p.Type.Name())
+	}
+
 	return ExecPromise{Type: p.Type, Arguments: args}, nil
 }
 
@@ -121,6 +129,10 @@ type PipePromise struct {
 }
 
 func (p PipePromise) New(children []Promise, args []Argument) (Promise, error) {
+
+	if len(args) != 0 {
+		return nil, fmt.Errorf("string arguments not allowed in (pipe) promise")
+	}
 
 	execs := []ExecPromise{}
 
