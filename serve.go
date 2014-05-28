@@ -151,7 +151,6 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 		Env:    env,
 		InDir:  ""}
 
-
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
 
 	logi.Printf("%d changes and %d tests executed\n", ctx.Logger.Changes, ctx.Logger.Tests)
@@ -160,5 +159,4 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 	} else {
 		loge.Printf("error during evaluation\n")
 	}
-
 }
