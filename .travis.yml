@@ -3,13 +3,8 @@ script: go test -v ./...
 go:
 - release
 
-branches:
-  only:
-    - master
-
 before_deploy:
   - "go build -o build/llconf"
-  - "cd build"
 
 deploy:
   provider: s3
@@ -25,3 +20,8 @@ deploy:
       o5JRJs+DiKYWxhyXoz2NZ7YU8xaDl2tXPR+IkVgTeNDuH0M4R8A=
   bucket: "llconf"
   skip_cleanup: true
+  local-dir: build
+  endpoint: "llconf.s3-website-eu-west-1.amazonaws.com"
+  region: "eu-west-1"
+  on:
+    branch: master
