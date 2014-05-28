@@ -23,5 +23,3 @@ deploy:
   local-dir: build
   endpoint: "llconf.s3-website-eu-west-1.amazonaws.com"
   region: "eu-west-1"
-  on:
-    branch: master
