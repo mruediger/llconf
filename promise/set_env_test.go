@@ -33,8 +33,7 @@ func TestSetNewEval(t *testing.T) {
 
 	var sout bytes.Buffer
 	ctx := NewContext()
-	ctx.Logger.Stdout = &sout
-	ctx.Logger.Info = &sout
+	ctx.ExecOutput = &sout
 
 	name := "setenv"
 	value := "blafasel"
@@ -48,7 +47,7 @@ func TestSetNewEval(t *testing.T) {
 		t.Errorf("(setenv) changed overall environment")
 	}
 
-	if sout.String() != "/bin/bash -c echo $setenv\nblafasel\n" {
+	if sout.String() != "blafasel\n" {
 		t.Errorf("env name not present during execution")
 	}
 }

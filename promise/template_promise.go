@@ -40,20 +40,20 @@ func (t TemplatePromise) Eval(arguments []Constant, ctx *Context) bool {
 	var input interface{}
 	err := json.Unmarshal([]byte(json_input), &input)
 	if err != nil {
-		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Error.Print(err.Error())
 		return false
 	}
 
 	tmpl, err := template.ParseFiles(template_file)
 	if err != nil {
-		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Error.Print(err.Error())
 		return false
 	}
 
 	fo, err := os.Create(output)
 	defer fo.Close()
 	if err != nil {
-		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Error.Print(err.Error())
 		return false
 	}
 
@@ -62,7 +62,7 @@ func (t TemplatePromise) Eval(arguments []Constant, ctx *Context) bool {
 	err = tmpl.Execute(bfo, input)
 
 	if err != nil {
-		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Error.Print(err.Error())
 		return false
 	} else {
 		bfo.Flush()

@@ -38,7 +38,7 @@ func (p RestartPromise) Desc(arguments []Constant) string {
 func (p RestartPromise) Eval(arguments []Constant, ctx *Context) bool {
 	newexe := p.NewExe.GetValue(arguments, &ctx.Vars)
 	if _, err := os.Stat(newexe); err != nil {
-		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Error.Print(err.Error())
 		return false
 	}
 
@@ -48,19 +48,17 @@ func (p RestartPromise) Eval(arguments []Constant, ctx *Context) bool {
 	}
 
 	os.Rename(newexe, exe)
-	ctx.Logger.Stdout.Write([]byte(fmt.Sprintf("restarted llconf: llconf %v", ctx.Args)))
+	ctx.Logger.Info.Print(fmt.Printf("restarted llconf: llconf %v", ctx.Args))
 
-	if _, err := p.restartLLConf(exe, ctx.Args, ctx.Logger.Stdout, ctx.Logger.Stderr); err == nil {
+	if _, err := p.restartLLConf(exe, ctx.Args, ctx.ExecOutput, ctx.ExecOutput); err == nil {
 		os.Exit(0)
 		return true
 	} else {
-		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Error.Print(err.Error())
 		return false
 	}
 }
-
 func (p RestartPromise) restartLLConf(exe string, args []string, stdout, stderr io.Writer) (*exec.Cmd, error) {
-
 	cmd := exec.Command(exe, args...)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr

@@ -13,15 +13,16 @@ func TestExecPromise(t *testing.T) {
 		Constant("Hello"),
 		ArgGetter{0}}}
 
-	var sout, serr bytes.Buffer
-	ctx := Context{}
-	ctx.Logger = &Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
+
+	out := bytes.Buffer{}
+	ctx := NewContext()
+	ctx.ExecOutput = &out
 
 	res := promise.Eval([]Constant{}, &ctx)
 	equals(t, true, res)
-	equals(t, strconv.Itoa(24), strconv.Itoa(len(sout.String())))
-	equals(t, "/bin/echo Hello \nHello \n", sout.String())
-	equals(t, strconv.Itoa(0), strconv.Itoa(len(serr.String())))
+
+	equals(t, strconv.Itoa(7), strconv.Itoa(len(out.String())))
+	equals(t, "Hello \n", out.String())
 }
 
 func TestPipePromise(t *testing.T) {
@@ -34,15 +35,14 @@ func TestPipePromise(t *testing.T) {
 	promises := []ExecPromise{exec1, exec2}
 	promise = PipePromise{promises}
 
-	var sout, serr bytes.Buffer
-	ctx := Context{}
-	ctx.Logger = &Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
+	var out bytes.Buffer
+	ctx := NewContext()
+	ctx.ExecOutput = &out;
 
 	res := promise.Eval([]Constant{}, &ctx)
 	equals(t, true, res)
-	equals(t, strconv.Itoa(49), strconv.Itoa(len(sout.String())))
-	equals(t, "/bin/echo hello world | /usr/bin/rev\ndlrow olleh\n", sout.String())
-	equals(t, strconv.Itoa(0), strconv.Itoa(len(serr.String())))
+	equals(t, strconv.Itoa(12), strconv.Itoa(len(out.String())))
+	equals(t, "dlrow olleh\n", out.String())
 }
 
 func TestExecReporting(t *testing.T) {
@@ -61,9 +61,9 @@ func TestExecReporting(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var sout, serr bytes.Buffer
-		ctx := Context{}
-		ctx.Logger = &Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
+		var out bytes.Buffer
+		ctx := NewContext()
+		ctx.ExecOutput = &out;
 
 		res := test.promise.Eval([]Constant{}, &ctx)
 		equals(t, true, res)

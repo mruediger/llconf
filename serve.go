@@ -16,15 +16,6 @@ import (
 	libpromise "github.com/d3media/llconf/promise"
 )
 
-type LogWriter struct {
-	log *log.Logger
-}
-
-func (l LogWriter) Write(b []byte) (n int, err error) {
-	l.log.Print(string(b))
-	return len(b), nil
-}
-
 var serve = &Command{
 	Name:      "serve",
 	Usage:     "serve [arguments...]",
@@ -138,9 +129,8 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 	env := []string{}
 
 	logger := libpromise.Logger{
-		Stdout:  LogWriter{logi},
-		Stderr:  LogWriter{loge},
-		Info:    LogWriter{logi},
+		Error:   loge,
+		Info:    logi,
 		Changes: 0,
 		Tests:   0}
 
@@ -149,6 +139,7 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 		Vars:   vars,
 		Args:   args,
 		Env:    env,
+		Debug: false,
 		InDir:  ""}
 
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)

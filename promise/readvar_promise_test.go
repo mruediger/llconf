@@ -17,12 +17,10 @@ func TestReadvarPromise(t *testing.T) {
 	var sout bytes.Buffer
 
 	ctx := NewContext()
-	ctx.Logger.Stdout = &sout
-	ctx.Logger.Info = &sout
+	ctx.ExecOutput = &sout
 
 	promise.Eval([]Constant{}, &ctx)
 
 	equals(t, "Hello World", ctx.Vars["test"])
-	equals(t, "/bin/echo Hello World\nHello World\n", sout.String())
-
+	equals(t, "Hello World\n", sout.String())
 }

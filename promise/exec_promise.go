@@ -107,20 +107,20 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 	command, err := p.getCommand(arguments, ctx)
 	if err != nil {
-		ctx.Logger.Stderr.Write([]byte(err.Error()))
+		ctx.Logger.Error.Print(err.Error())
 		return false
 	}
-	command.Stdout = ctx.Logger.Stdout
-	command.Stderr = ctx.Logger.Stderr
 
-	ctx.Logger.Info.Write([]byte(strings.Join(command.Args, " ") + "\n"))
+	ctx.ExecOutput.Reset()
+	command.Stdout = ctx.ExecOutput
+	command.Stderr = ctx.ExecOutput
 
+	ctx.Logger.Info.Print(strings.Join(command.Args, " ") + "\n")
 	err = command.Run()
-
-	result := (err == nil)
+	ctx.Logger.Info.Print(ctx.ExecOutput.String())
 
 	p.Type.IncrementExecCounter(ctx.Logger)
-	return result
+	return err == nil
 }
 
 /////////////////////////////
@@ -164,12 +164,11 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	for _, v := range p.Execs {
 		cmd, err := v.getCommand(arguments, ctx)
 		if err != nil {
-			ctx.Logger.Stderr.Write([]byte(err.Error()))
+			ctx.Logger.Error.Print(err.Error())
 			return false
 		} else {
 			v.Type.IncrementExecCounter(ctx.Logger)
 		}
-
 		cstrings = append(cstrings, strings.Join(cmd.Args, " "))
 		commands = append(commands, cmd)
 	}
@@ -177,28 +176,26 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	for i, command := range commands[:len(commands)-1] {
 		out, err := command.StdoutPipe()
 		if err != nil {
-			ctx.Logger.Stderr.Write([]byte(err.Error()))
+			ctx.Logger.Error.Print(err.Error())
 			return false
 		}
 		command.Start()
 		commands[i+1].Stdin = out
 	}
 
-	ctx.Logger.Info.Write([]byte(strings.Join(cstrings, " | ") + "\n"))
-
 	last_cmd := commands[len(commands)-1]
-	last_cmd.Stdout = ctx.Logger.Stdout
-	last_cmd.Stderr = ctx.Logger.Stderr
+
+	ctx.ExecOutput.Reset()
+	last_cmd.Stdout = ctx.ExecOutput
+	last_cmd.Stderr = ctx.ExecOutput
+
+	ctx.Logger.Info.Print(strings.Join(cstrings, " | ") + "\n")
 
 	err := last_cmd.Run()
-
 	for _, command := range commands[:len(commands)-1] {
 		command.Wait()
 	}
+	ctx.Logger.Info.Print(ctx.ExecOutput.String())
 
-	if err != nil {
-		return false
-	} else {
-		return true
-	}
+	return err == nil
 }

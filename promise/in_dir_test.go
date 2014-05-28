@@ -29,8 +29,7 @@ func TestEval(t *testing.T) {
 	var sout bytes.Buffer
 
 	ctx := NewContext()
-	ctx.Logger.Stdout = &sout
-	ctx.Logger.Info = &sout
+	ctx.ExecOutput = &sout
 
 	if d.Eval([]Constant{}, &ctx) {
 		if ctx.InDir == "/var" {
@@ -42,7 +41,7 @@ func TestEval(t *testing.T) {
 
 	out := sout.String()
 
-	if out != "pwd\n/var\n" {
+	if out != "/var\n" {
 		t.Errorf("exec not in right dir, found: %s", out)
 	}
 }

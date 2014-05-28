@@ -56,20 +56,10 @@ func (p ReadvarPromise) Desc(arguments []Constant) string {
 }
 
 func (p ReadvarPromise) Eval(arguments []Constant, ctx *Context) bool {
-	bytes := []byte{}
-
-	wrapped_stdout := ReadvarWriter{
-		writer: ctx.Logger.Stdout,
-		bytes:  bytes,
-	}
-
-	wrapped_logger_ctx := *ctx
-	wrapped_logger_ctx.Logger.Stdout = &wrapped_stdout
-
-	result := p.Exec.Eval(arguments, &wrapped_logger_ctx)
+	result := p.Exec.Eval(arguments, ctx)
 
 	name := p.VarName.GetValue(arguments, &ctx.Vars)
-	value := string(wrapped_stdout.bytes)
+	value := ctx.ExecOutput.String()
 
 	ctx.Vars[name] = strings.TrimSpace(value)
 
