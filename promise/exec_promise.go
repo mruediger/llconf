@@ -25,7 +25,7 @@ func (t ExecType) Name() string {
 	}
 }
 
-func (t ExecType) ReportResult(logger *Logger, result bool) {
+func (t ExecType) IncrementExecCounter(logger *Logger) {
 	if t == ExecChange {
 		logger.Changes++
 	}
@@ -118,7 +118,8 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 	err = command.Run()
 
 	result := (err == nil)
-	p.Type.ReportResult(&ctx.Logger, result)
+
+	p.Type.IncrementExecCounter(ctx.Logger)
 	return result
 }
 
@@ -165,6 +166,8 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 		if err != nil {
 			ctx.Logger.Stderr.Write([]byte(err.Error()))
 			return false
+		} else {
+			v.Type.IncrementExecCounter(ctx.Logger)
 		}
 
 		cstrings = append(cstrings, strings.Join(cmd.Args, " "))

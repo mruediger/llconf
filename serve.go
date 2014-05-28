@@ -76,7 +76,6 @@ func runServ(args []string) {
 		} else {
 			fmt.Fprintf(os.Stderr, "could not find any valid promises\n")
 		}
-
 		<-quit
 	}
 }
@@ -146,17 +145,20 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 		Tests:   0}
 
 	ctx := libpromise.Context{
-		Logger: logger,
+		Logger: &logger,
 		Vars:   vars,
 		Args:   args,
 		Env:    env,
 		InDir:  ""}
 
+
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
 
+	logi.Printf("%d changes and %d tests executed\n", ctx.Logger.Changes, ctx.Logger.Tests)
 	if promises_fullfilled {
 		logi.Printf("evaluation successful\n")
 	} else {
 		loge.Printf("error during evaluation\n")
 	}
+
 }

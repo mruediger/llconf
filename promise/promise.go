@@ -17,7 +17,7 @@ type Argument interface {
 }
 
 type Context struct {
-	Logger Logger
+	Logger *Logger
 	Vars   Variables
 	Args   []string
 	Env    []string
@@ -34,7 +34,7 @@ type Logger struct {
 
 func NewContext() Context {
 	return Context{
-		Logger: Logger{
+		Logger: &Logger{
 			Stdout:  os.Stdout,
 			Stderr:  os.Stderr,
 			Info:    os.Stdout,
