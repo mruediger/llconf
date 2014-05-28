@@ -15,7 +15,7 @@ func TestExecPromise(t *testing.T) {
 
 	var sout, serr bytes.Buffer
 	ctx := Context{}
-	ctx.Logger = Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
+	ctx.Logger = &Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
 
 	res := promise.Eval([]Constant{}, &ctx)
 	equals(t, true, res)
@@ -36,7 +36,7 @@ func TestPipePromise(t *testing.T) {
 
 	var sout, serr bytes.Buffer
 	ctx := Context{}
-	ctx.Logger = Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
+	ctx.Logger = &Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
 
 	res := promise.Eval([]Constant{}, &ctx)
 	equals(t, true, res)
@@ -63,7 +63,7 @@ func TestExecReporting(t *testing.T) {
 	for _, test := range tests {
 		var sout, serr bytes.Buffer
 		ctx := Context{}
-		ctx.Logger = Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
+		ctx.Logger = &Logger{Stdout: &sout, Stderr: &serr, Info: &sout}
 
 		res := test.promise.Eval([]Constant{}, &ctx)
 		equals(t, true, res)
