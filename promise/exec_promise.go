@@ -122,7 +122,9 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 	successful := (err == nil)
 	if ctx.Debug || p.Type == ExecChange {
 		ctx.Logger.Info.Print("[" + p.Type.String() + "] " + strings.Join(command.Args, " ") + "\n")
-		ctx.Logger.Info.Print(ctx.ExecOutput.String())
+		if ctx.ExecOutput.Len() > 0 {
+			ctx.Logger.Info.Print(ctx.ExecOutput.String())
+		}
 	}
 
 	return successful
@@ -209,7 +211,9 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 
 	if ctx.Debug || pipe_contains_change {
 		ctx.Logger.Info.Print(strings.Join(cstrings, " | ") + "\n")
-		ctx.Logger.Info.Print(ctx.ExecOutput.String())
+		if ctx.ExecOutput.Len() > 0 {
+			ctx.Logger.Info.Print(ctx.ExecOutput.String())
+		}
 	}
 
 	return successful
