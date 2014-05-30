@@ -14,6 +14,7 @@ import (
 
 	"github.com/d3media/llconf/compiler"
 	libpromise "github.com/d3media/llconf/promise"
+	"bytes"
 )
 
 var serve = &Command{
@@ -31,6 +32,7 @@ var serve_cfg struct {
 	interval     int
 	inp_dir      string
 	workdir      string
+	runlog_path  string
 }
 
 func init() {
@@ -39,6 +41,7 @@ func init() {
 	serve.Flag.StringVar(&serve_cfg.root_promise, "promise", "done", "the promise that will be used as the root of the promise tree")
 	serve.Flag.StringVar(&serve_cfg.inp_dir, "input-folder", "", "the folder containing input files")
 	serve.Flag.BoolVar(&serve_cfg.use_syslog, "syslog", false, "output to syslog")
+	serve.Flag.StringVar(&serve_cfg.runlog_path, "runlog", "", "path to the runlog")
 }
 
 func runServ(args []string) {
@@ -100,6 +103,10 @@ func parseArguments(args []string) {
 		serve_cfg.inp_dir = filepath.Join(serve_cfg.workdir, "input")
 	}
 
+	if serve_cfg.runlog_path == "" {
+		serve_cfg.runlog_path = filepath.Join(serve_cfg.workdir, "runlog")
+	}
+
 	// when run as daemon, the home folder isn't set
 	home := os.Getenv("HOME")
 	if home == "" {
@@ -136,13 +143,16 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 
 	ctx := libpromise.Context{
 		Logger: &logger,
+		ExecOutput: &bytes.Buffer{},
 		Vars:   vars,
 		Args:   args,
 		Env:    env,
-		Debug: false,
+		Debug:  false,
 		InDir:  ""}
 
+	starttime := time.Now().Local()
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
+	endtime := time.Now().Local()
 
 	logi.Printf("%d changes and %d tests executed\n", ctx.Logger.Changes, ctx.Logger.Tests)
 	if promises_fullfilled {
@@ -150,4 +160,32 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 	} else {
 		loge.Printf("error during evaluation\n")
 	}
+
+	writeRunLog(promises_fullfilled, ctx.Logger.Changes, ctx.Logger.Tests, starttime, endtime, serve_cfg.runlog_path)
+}
+
+func writeRunLog(success bool, changes, tests int, starttime, endtime time.Time, path string) (err error) {
+	var output string
+
+	duration := endtime.Sub(starttime)
+
+	if success {
+		output = fmt.Sprintf("successful, endtime=%d, duration=%f, c=%d, t=%d\n", endtime.Unix(), duration.Seconds(), changes, tests)
+	} else {
+		output = fmt.Sprintf("error, endtime=%d, duration=%f, c=%d, t=%d\n", endtime.Unix(), duration.Seconds(), changes, tests)
+	}
+
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return
+	}
+
+	data := []byte(output)
+	n, err := f.Write(data)
+	if err == nil && n < len(data) {
+		return
+	}
+
+	err = f.Close()
+	return
 }
