@@ -12,9 +12,9 @@ import (
 
 	"bitbucket.org/kardianos/osext"
 
+	"bytes"
 	"github.com/d3media/llconf/compiler"
 	libpromise "github.com/d3media/llconf/promise"
-	"bytes"
 )
 
 var serve = &Command{
@@ -33,6 +33,7 @@ var serve_cfg struct {
 	inp_dir      string
 	workdir      string
 	runlog_path  string
+	debug        bool
 }
 
 func init() {
@@ -42,6 +43,7 @@ func init() {
 	serve.Flag.StringVar(&serve_cfg.inp_dir, "input-folder", "", "the folder containing input files")
 	serve.Flag.BoolVar(&serve_cfg.use_syslog, "syslog", false, "output to syslog")
 	serve.Flag.StringVar(&serve_cfg.runlog_path, "runlog", "", "path to the runlog")
+	serve.Flag.BoolVar(&serve_cfg.debug, "debug", false, "turn on debugging output")
 }
 
 func runServ(args []string) {
@@ -142,13 +144,13 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 		Tests:   0}
 
 	ctx := libpromise.Context{
-		Logger: &logger,
+		Logger:     &logger,
 		ExecOutput: &bytes.Buffer{},
-		Vars:   vars,
-		Args:   args,
-		Env:    env,
-		Debug:  false,
-		InDir:  ""}
+		Vars:       vars,
+		Args:       args,
+		Env:        env,
+		Debug:      serve_cfg.debug,
+		InDir:      ""}
 
 	starttime := time.Now().Local()
 	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)

@@ -115,12 +115,17 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 	command.Stdout = ctx.ExecOutput
 	command.Stderr = ctx.ExecOutput
 
-	ctx.Logger.Info.Print("[" + p.Type.String() + "] " + strings.Join(command.Args, " ") + "\n")
 	err = command.Run()
-	ctx.Logger.Info.Print(ctx.ExecOutput.String())
 
 	p.Type.IncrementExecCounter(ctx.Logger)
-	return err == nil
+
+	successful := (err == nil)
+	if ctx.Debug || p.Type == ExecChange || !successful {
+		ctx.Logger.Info.Print("[" + p.Type.String() + "] " + strings.Join(command.Args, " ") + "\n")
+		ctx.Logger.Info.Print(ctx.ExecOutput.String())
+	}
+
+	return successful
 }
 
 /////////////////////////////
@@ -161,6 +166,8 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
 
+	pipe_contains_change := false
+
 	for _, v := range p.Execs {
 		cmd, err := v.getCommand(arguments, ctx)
 		if err != nil {
@@ -169,8 +176,12 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 		} else {
 			v.Type.IncrementExecCounter(ctx.Logger)
 		}
-		cstrings = append(cstrings, "[" + v.Type.String() + "] " + strings.Join(cmd.Args, " "))
+		cstrings = append(cstrings, "["+v.Type.String()+"] "+strings.Join(cmd.Args, " "))
 		commands = append(commands, cmd)
+
+		if v.Type == ExecChange {
+			pipe_contains_change = true
+		}
 	}
 
 	for i, command := range commands[:len(commands)-1] {
@@ -189,13 +200,17 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	last_cmd.Stdout = ctx.ExecOutput
 	last_cmd.Stderr = ctx.ExecOutput
 
-	ctx.Logger.Info.Print(strings.Join(cstrings, " | ") + "\n")
-
 	err := last_cmd.Run()
 	for _, command := range commands[:len(commands)-1] {
 		command.Wait()
 	}
-	ctx.Logger.Info.Print(ctx.ExecOutput.String())
 
-	return err == nil
+	successful := (err == nil)
+
+	if ctx.Debug || pipe_contains_change || !successful {
+		ctx.Logger.Info.Print(strings.Join(cstrings, " | ") + "\n")
+		ctx.Logger.Info.Print(ctx.ExecOutput.String())
+	}
+
+	return successful
 }
