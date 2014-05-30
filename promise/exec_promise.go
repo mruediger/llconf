@@ -115,7 +115,7 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 	command.Stdout = ctx.ExecOutput
 	command.Stderr = ctx.ExecOutput
 
-	ctx.Logger.Info.Print(strings.Join(command.Args, " ") + "\n")
+	ctx.Logger.Info.Print("[" + p.Type.String() + "] " + strings.Join(command.Args, " ") + "\n")
 	err = command.Run()
 	ctx.Logger.Info.Print(ctx.ExecOutput.String())
 
@@ -169,7 +169,7 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 		} else {
 			v.Type.IncrementExecCounter(ctx.Logger)
 		}
-		cstrings = append(cstrings, strings.Join(cmd.Args, " "))
+		cstrings = append(cstrings, "[" + v.Type.String() + "] " + strings.Join(cmd.Args, " "))
 		commands = append(commands, cmd)
 	}
 
