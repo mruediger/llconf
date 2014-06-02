@@ -11,10 +11,10 @@ func (p InDir) Desc(arguments []Constant) string {
 	return fmt.Sprintf("(indir %s %s)", p.dir, p.promise.Desc(arguments))
 }
 
-func (p InDir) Eval(arguments []Constant, ctx *Context) bool {
+func (p InDir) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	copyied_ctx := *ctx
 	copyied_ctx.InDir = p.dir.GetValue(arguments, &ctx.Vars)
-	return p.promise.Eval(arguments, &copyied_ctx)
+	return p.promise.Eval(arguments, &copyied_ctx, stack)
 }
 
 func (p InDir) New(children []Promise, args []Argument) (Promise, error) {

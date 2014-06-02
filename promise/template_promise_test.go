@@ -27,7 +27,7 @@ func runTest(template string, json string) string {
 	promise := TemplatePromise{Constant(json), Constant(template_file), Constant(output)}
 
 	ctx := NewContext()
-	promise.Eval([]Constant{}, &ctx)
+	promise.Eval([]Constant{}, &ctx, "teamplate_promise")
 
 	bytes, err := ioutil.ReadFile(output)
 	if err != nil {

@@ -26,9 +26,9 @@ func (p AndPromise) Desc(arguments []Constant) string {
 	return "(and" + promises + ")"
 }
 
-func (p AndPromise) Eval(arguments []Constant, ctx *Context) bool {
+func (p AndPromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	for _, v := range p.Promises {
-		result := v.Eval(arguments, ctx)
+		result := v.Eval(arguments, ctx, stack)
 		if result == false {
 			return false
 		}

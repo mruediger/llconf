@@ -35,7 +35,7 @@ func (p RestartPromise) Desc(arguments []Constant) string {
 	return "(restart " + strings.Join(args, ", ") + ")"
 }
 
-func (p RestartPromise) Eval(arguments []Constant, ctx *Context) bool {
+func (p RestartPromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	newexe := p.NewExe.GetValue(arguments, &ctx.Vars)
 	if _, err := os.Stat(newexe); err != nil {
 		ctx.Logger.Error.Print(err.Error())

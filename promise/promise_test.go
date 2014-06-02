@@ -23,7 +23,7 @@ func (p DummyPromise) Desc(arguments []Constant) string {
 	return "(dummy [" + p.StringValue + "]" + strings.Join(args, " ") + ")"
 }
 
-func (p DummyPromise) Eval(arguments []Constant, ctx *Context) bool {
+func (p DummyPromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	return p.EvalValue
 }
 

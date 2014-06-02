@@ -31,7 +31,7 @@ func (t TemplatePromise) Desc(arguments []Constant) string {
 		t.Output)
 }
 
-func (t TemplatePromise) Eval(arguments []Constant, ctx *Context) bool {
+func (t TemplatePromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	replacer := strings.NewReplacer("'", "\"")
 	json_input := replacer.Replace(t.JsonInput.GetValue(arguments, &ctx.Vars))
 	template_file := t.TemplateFile.GetValue(arguments, &ctx.Vars)

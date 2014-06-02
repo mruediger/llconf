@@ -19,7 +19,7 @@ func TestReadvarPromise(t *testing.T) {
 	ctx := NewContext()
 	ctx.ExecOutput = &sout
 
-	promise.Eval([]Constant{}, &ctx)
+	promise.Eval([]Constant{}, &ctx, "readvar")
 
 	equals(t, "Hello World", ctx.Vars["test"])
 	equals(t, "Hello World\n", sout.String())

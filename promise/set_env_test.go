@@ -40,7 +40,7 @@ func TestSetNewEval(t *testing.T) {
 	s := SetEnv{Constant(name), Constant(value), exec}
 
 	oldenv := fmt.Sprintf("%v", os.Environ())
-	s.Eval([]Constant{}, &ctx)
+	s.Eval([]Constant{}, &ctx, "setenv")
 	newenv := fmt.Sprintf("%v", os.Environ())
 
 	if oldenv != newenv {

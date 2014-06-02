@@ -153,7 +153,7 @@ func checkPromise(p libpromise.Promise, logi, loge *log.Logger, args []string) {
 		InDir:      ""}
 
 	starttime := time.Now().Local()
-	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx)
+	promises_fullfilled := p.Eval([]libpromise.Constant{}, &ctx, "")
 	endtime := time.Now().Local()
 
 	logi.Printf("%d changes and %d tests executed\n", ctx.Logger.Changes, ctx.Logger.Tests)

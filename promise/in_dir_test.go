@@ -31,7 +31,7 @@ func TestEval(t *testing.T) {
 	ctx := NewContext()
 	ctx.ExecOutput = &sout
 
-	if d.Eval([]Constant{}, &ctx) {
+	if d.Eval([]Constant{}, &ctx, "indir") {
 		if ctx.InDir == "/var" {
 			t.Errorf("indir.TestEval: testdir creept outside scope")
 		}

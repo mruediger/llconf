@@ -18,7 +18,7 @@ func TestExecPromise(t *testing.T) {
 	ctx := NewContext()
 	ctx.ExecOutput = &out
 
-	res := promise.Eval([]Constant{}, &ctx)
+	res := promise.Eval([]Constant{}, &ctx, "teststack")
 	equals(t, true, res)
 
 	equals(t, strconv.Itoa(7), strconv.Itoa(len(out.String())))
@@ -39,7 +39,7 @@ func TestPipePromise(t *testing.T) {
 	ctx := NewContext()
 	ctx.ExecOutput = &out;
 
-	res := promise.Eval([]Constant{}, &ctx)
+	res := promise.Eval([]Constant{}, &ctx, "teststack")
 	equals(t, true, res)
 	equals(t, strconv.Itoa(12), strconv.Itoa(len(out.String())))
 	equals(t, "dlrow olleh\n", out.String())
@@ -65,7 +65,7 @@ func TestExecReporting(t *testing.T) {
 		ctx := NewContext()
 		ctx.ExecOutput = &out;
 
-		res := test.promise.Eval([]Constant{}, &ctx)
+		res := test.promise.Eval([]Constant{}, &ctx, "teststack")
 		equals(t, true, res)
 		equals(t, strconv.Itoa(test.changes), strconv.Itoa(ctx.Logger.Changes))
 	}

@@ -14,14 +14,13 @@ func (s SetEnv) Desc(arguments []Constant) string {
 	return fmt.Sprintf("(setenv %s %s)", s.name, s.child.Desc(arguments))
 }
 
-func (s SetEnv) Eval(arguments []Constant, ctx *Context) bool {
-
+func (s SetEnv) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	name := s.name.GetValue(arguments, &ctx.Vars)
 	value := s.value.GetValue(arguments, &ctx.Vars)
 
 	copyied_ctx := *ctx
 	copyied_ctx.Env = append(copyied_ctx.Env, fmt.Sprintf("%s=%s", name, value))
-	return s.child.Eval(arguments, &copyied_ctx)
+	return s.child.Eval(arguments, &copyied_ctx, stack)
 }
 
 func (s SetEnv) New(children []Promise, args []Argument) (Promise, error) {

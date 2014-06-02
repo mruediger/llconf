@@ -104,7 +104,7 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 	return "(" + p.Type.Name() + " <" + cmd + " [" + strings.Join(args, ", ") + "] >)"
 }
 
-func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
+func (p ExecPromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	command, err := p.getCommand(arguments, ctx)
 	if err != nil {
 		ctx.Logger.Error.Print(err.Error())
@@ -121,6 +121,7 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context) bool {
 
 	successful := (err == nil)
 	if ctx.Debug || p.Type == ExecChange {
+		ctx.Logger.Info.Print(stack)
 		ctx.Logger.Info.Print("[" + p.Type.String() + "] " + strings.Join(command.Args, " ") + "\n")
 		if ctx.ExecOutput.Len() > 0 {
 			ctx.Logger.Info.Print(ctx.ExecOutput.String())
@@ -164,7 +165,7 @@ func (p PipePromise) Desc(arguments []Constant) string {
 	return retval + ")"
 }
 
-func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
+func (p PipePromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
 
@@ -210,6 +211,7 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context) bool {
 	successful := (err == nil)
 
 	if ctx.Debug || pipe_contains_change {
+		ctx.Logger.Info.Print(stack)
 		ctx.Logger.Info.Print(strings.Join(cstrings, " | ") + "\n")
 		if ctx.ExecOutput.Len() > 0 {
 			ctx.Logger.Info.Print(ctx.ExecOutput.String())

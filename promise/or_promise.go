@@ -26,9 +26,9 @@ func (p OrPromise) Desc(arguments []Constant) string {
 	return "(or" + promises + ")"
 }
 
-func (p OrPromise) Eval(arguments []Constant, ctx *Context) bool {
+func (p OrPromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
 	for _, v := range p.Promises {
-		r := v.Eval(arguments, ctx)
+		r := v.Eval(arguments, ctx, stack)
 		if r == true {
 			return true
 		}
