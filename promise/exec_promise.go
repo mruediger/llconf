@@ -57,6 +57,7 @@ func (p ExecPromise) New(children []Promise, args []Argument) (Promise, error) {
 }
 
 func (p ExecPromise) getCommand(arguments []Constant, ctx *Context) (*exec.Cmd, error) {
+
 	cmd := p.Arguments[0].GetValue(arguments, &ctx.Vars)
 	largs := p.Arguments[1:]
 
@@ -65,6 +66,13 @@ func (p ExecPromise) getCommand(arguments []Constant, ctx *Context) (*exec.Cmd, 
 		args = append(args, argument.GetValue(arguments, &ctx.Vars))
 	}
 
+	// use (in_dir) for command lookup
+	newcmd,err := exec.LookPath(ctx.InDir + "/" + cmd)
+	if ctx.InDir != "" {
+		if err == nil {
+			cmd = newcmd
+		}
+	}
 	command := exec.Command(cmd, args...)
 
 	if ctx.InDir != "" {
@@ -120,11 +128,14 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 	p.Type.IncrementExecCounter(ctx.Logger)
 
 	successful := (err == nil)
-	if ctx.Debug || p.Type == ExecChange {
+	if ! successful || ctx.Debug || p.Type == ExecChange {
 		ctx.Logger.Info.Print(stack)
 		ctx.Logger.Info.Print("[" + p.Type.String() + "] " + strings.Join(command.Args, " ") + "\n")
 		if ctx.ExecOutput.Len() > 0 {
 			ctx.Logger.Info.Print(ctx.ExecOutput.String())
+		}
+		if ! successful {
+			ctx.Logger.Info.Print(err.Error())
 		}
 	}
 
@@ -210,11 +221,14 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 
 	successful := (err == nil)
 
-	if ctx.Debug || pipe_contains_change {
+	if ! successful || ctx.Debug || pipe_contains_change {
 		ctx.Logger.Info.Print(stack)
 		ctx.Logger.Info.Print(strings.Join(cstrings, " | ") + "\n")
 		if ctx.ExecOutput.Len() > 0 {
 			ctx.Logger.Info.Print(ctx.ExecOutput.String())
+		}
+		if !successful {
+			ctx.Logger.Info.Print(err.Error())
 		}
 	}
 
