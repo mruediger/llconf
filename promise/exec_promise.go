@@ -113,6 +113,7 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 }
 
 func (p ExecPromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
+	ctx.Logger.Info.Print(stack)
 	command, err := p.getCommand(arguments, ctx)
 	if err != nil {
 		ctx.Logger.Error.Print(err.Error())
@@ -128,8 +129,7 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 	p.Type.IncrementExecCounter(ctx.Logger)
 
 	successful := (err == nil)
-	if ! successful || ctx.Debug || p.Type == ExecChange {
-		ctx.Logger.Info.Print(stack)
+	if ctx.Debug || p.Type == ExecChange {
 		ctx.Logger.Info.Print("[" + p.Type.String() + "] " + strings.Join(command.Args, " ") + "\n")
 		if ctx.ExecOutput.Len() > 0 {
 			ctx.Logger.Info.Print(ctx.ExecOutput.String())
@@ -177,6 +177,7 @@ func (p PipePromise) Desc(arguments []Constant) string {
 }
 
 func (p PipePromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
+	ctx.Logger.Info.Print(stack)
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
 
@@ -221,8 +222,8 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 
 	successful := (err == nil)
 
-	if ! successful || ctx.Debug || pipe_contains_change {
-		ctx.Logger.Info.Print(stack)
+	if ctx.Debug || pipe_contains_change {
+
 		ctx.Logger.Info.Print(strings.Join(cstrings, " | ") + "\n")
 		if ctx.ExecOutput.Len() > 0 {
 			ctx.Logger.Info.Print(ctx.ExecOutput.String())
