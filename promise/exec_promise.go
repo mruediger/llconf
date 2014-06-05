@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 type ExecType int
@@ -113,7 +114,16 @@ func (p ExecPromise) Desc(arguments []Constant) string {
 }
 
 func (p ExecPromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
-	ctx.Logger.Info.Print(stack)
+
+	quit := make(chan bool)
+	go func(quit chan bool) {
+		time.Sleep(time.Duration(5) * time.Minute)
+		if _,ok := <- quit; ! ok {
+			ctx.Logger.Error.Print(stack + " has been running for 5 minutes")
+		}
+	} (quit)
+
+
 	command, err := p.getCommand(arguments, ctx)
 	if err != nil {
 		ctx.Logger.Error.Print(err.Error())
@@ -132,13 +142,18 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 	if ctx.Debug || p.Type == ExecChange {
 		ctx.Logger.Info.Print("[" + p.Type.String() + "] " + strings.Join(command.Args, " ") + "\n")
 		if ctx.ExecOutput.Len() > 0 {
+			ctx.Logger.Info.Print(stack)
 			ctx.Logger.Info.Print(ctx.ExecOutput.String())
 		}
 		if ! successful {
 			ctx.Logger.Info.Print(err.Error())
 		}
 	}
-
+	//non blocking send
+	select {
+	case quit <- true:
+	default:
+	}
 	return successful
 }
 
@@ -177,7 +192,17 @@ func (p PipePromise) Desc(arguments []Constant) string {
 }
 
 func (p PipePromise) Eval(arguments []Constant, ctx *Context, stack string) bool {
-	ctx.Logger.Info.Print(stack)
+
+	quit := make(chan bool)
+	go func(quit chan bool) {
+		time.Sleep(time.Duration(5) * time.Minute)
+		if _,ok := <- quit; ! ok {
+			ctx.Logger.Error.Print(stack + " has been running for 5 minutes")
+		}
+	} (quit)
+
+
+
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
 
@@ -226,11 +251,18 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 
 		ctx.Logger.Info.Print(strings.Join(cstrings, " | ") + "\n")
 		if ctx.ExecOutput.Len() > 0 {
+			ctx.Logger.Info.Print(stack)
 			ctx.Logger.Info.Print(ctx.ExecOutput.String())
 		}
 		if !successful {
 			ctx.Logger.Info.Print(err.Error())
 		}
+	}
+
+	//non blocking send
+	select {
+	case quit <- true:
+	default:
 	}
 
 	return successful
