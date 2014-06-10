@@ -117,12 +117,13 @@ func (p ExecPromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 
 	quit := make(chan bool)
 	go func(quit chan bool) {
-		time.Sleep(time.Duration(5) * time.Minute)
-		if _,ok := <- quit; ! ok {
+		select {
+		case <- quit:
+			return
+		case <-time.After(time.Duration(5) * time.Minute):
 			ctx.Logger.Error.Print(stack + " has been running for 5 minutes")
 		}
 	} (quit)
-
 
 	command, err := p.getCommand(arguments, ctx)
 	if err != nil {
@@ -195,13 +196,13 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 
 	quit := make(chan bool)
 	go func(quit chan bool) {
-		time.Sleep(time.Duration(5) * time.Minute)
-		if _,ok := <- quit; ! ok {
+		select {
+		case <- quit:
+			return
+		case <-time.After(time.Duration(5) * time.Minute):
 			ctx.Logger.Error.Print(stack + " has been running for 5 minutes")
 		}
 	} (quit)
-
-
 
 	commands := []*exec.Cmd{}
 	cstrings := []string{}
@@ -263,6 +264,5 @@ func (p PipePromise) Eval(arguments []Constant, ctx *Context, stack string) bool
 	case quit <- true:
 	default:
 	}
-
 	return successful
 }
