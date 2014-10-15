@@ -29,7 +29,7 @@ is to help you building your own special promises by the use of named promises.
 
 ### Named Promises ###
 
-(name ( other promise ))
+    ( <some name> ( other promise ))
 
 Named promises serve the purpose of naming a promise. This way, you can
 reuse the promise and improve the readablilty of your setup. There use is
@@ -38,7 +38,7 @@ a named promise.
 
 ### Boolean ###
 
-(and (promisses...)) (or (promisses ...))
+    (and (promisses...)) (or (promisses ...))
 
 The promises "(and)" and "(or)" are essential to combine promises and by that, create a
 tree of promises that have to be fullfilled. Both promises take a list of other promises.
@@ -55,21 +55,24 @@ reporting there are two ways to execute programms. They only differ by their nam
 and the bucket their outcomes are storend into for later monitoring.
 
 #### Tests ####
-(test "command" "argument 1" "argument 2" ... "argument n")
+
+     (test "command" "argument 1" "argument 2" ... "argument n")
 
 Oftentimes you just want to check stuff and execute something else depending on the outcome.
 For example if you want to check if a process is running you don't want a report on how
 often the check that the process is running succeded. Ideally this should be always.
 
 #### Changes ####
-(change "command" "argument 1" "argument 2" ... "argument n")
+
+     (change "command" "argument 1" "argument 2" ... "argument n")
 
 When the process isn't isn't running and you have to change that, you surly want that be reported
 so if that change has to be done regualry, something ought to be wrong with either your machine or
 the setup you are tring to implement.
 
 #### Pipes ####
-(pipe (test) (test) (change) ... )
+
+     (pipe (test) (test) (change) ... )
 
 The standart unix toolbox is one of the most flexible tools for system adimistration out there.
 This all comes down to the simple concept of pipes. LLConf also supports pipes using the pipe promise.
@@ -77,7 +80,8 @@ The standart output of every command is passed down as the standart input of the
 For obvious reasons you can only use (change) and (test) promises inside a (pipe) promise.
 
 #### Changing directories ####
-(indir ( change / test ))
+
+     (indir ( change / test ))
 
 To execute a program inside a specific directory, for example running a "git checkout" you can use the
 indir promise.
@@ -108,15 +112,15 @@ you can overwrite variables locally without affecting evaluations globally.
 
 To get the contents of a variable you simply write
 
-[var:name] (eg. [var:favorite_colour])
+     [var:name] (eg. [var:favorite_colour])
 
 Variables can be set by using on of the following special promises:
 
-(setvar "name" "value")
+     (setvar "name" "value")
 
 This promise stores the value "value" under the name "name"
 
-(readvar "name (cmd))
+     (readvar "name (cmd))
 
 This promise stores the standart output of the invoked command under the name "name". The command
 can be a (test) a (change) or a (pipe) promise.
@@ -135,7 +139,7 @@ which will, when invoked like in the sample above, run the command "echo" with t
 
 LLConf leverages go's template engine. It expects json as the input to the template engine.
 
-(template "{json}" "template-file" "output-file")
+       (template "{json}" "template-file" "output-file")
 
 Since the template engine can handle arrays and objects you can easily can adapt the template to your
 needs. LLConf is not able to edit files. It is in my oppinion very dangerous to edit a file based
@@ -169,14 +173,18 @@ It simply checks there is a mysqld process running and, if not, fires up the ini
     (keep the source "git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git" "/usr/src/linux")
 
     (keep the source
-        (or (and (git repo present [arg:1]) (git repo uptodate [arg:1]))
+        (or (git repo present and uptodate)
             (change "git" "clone" [arg:0])))
+
+    (git repo present and uptodate
+        (and (git repo present)
+             (git repo uptodate)))
 
     (git repo present
         (test "test" "-d" [join [arg:0] "/.git"]))
 
     (git repo uptodate
-      (and (indir [arg:0] (test "git" "fetch" "--all")
+       (and (indir [arg:0] (test "git" "fetch" "--all")
         (or (indir [arg:0] (test "git" "diff" "--quiet" "HEAD@{upstream}"))
             (indir [arg:0] (change "git" "reset" "--hard" "HEAD@{upstream}")))))
 
