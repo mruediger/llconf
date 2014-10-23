@@ -8,11 +8,7 @@ In this folder run
 
     veewee vbox build llconf-CentOS-6.4-x86_64
 
-and wait a little. To login after the setup use the the password "veewee" and the following command:
-
-    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 7222 -l veewee 127.0.0.1
-
-To export the VM and import into vagrant run:
+and wait a little. To export the VM and import into vagrant run:
 
     veewee vbox export llconf-CentOS-6.4-x86_64
     vagrant box add llconf-centos llconf-CentOS-6.4-x86_64.box
